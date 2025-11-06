@@ -26,7 +26,7 @@ let aceGame = {
     revealed: -1
 };
 
-let noMatchGame = {
+let noMatchGameState = {
     userNumbers: [],
     dealerNumbers: [],
     wager: 0
@@ -36,28 +36,11 @@ let noMatchGame = {
 // INITIALIZATION
 // ====================================
 function initPlayer() {
-    const savedData = {};
-    try {
-        const keys = Object.keys(localStorage);
-        keys.forEach(key => {
-            if (key.startsWith('gameOfChance_')) {
-                savedData[key.replace('gameOfChance_', '')] = localStorage.getItem(key);
-            }
-        });
-    } catch (e) {
-        console.error('Storage access error:', e);
-    }
-
-    if (savedData.player) {
-        try {
-            player = JSON.parse(savedData.player);
-            showMainGame();
-        } catch (e) {
-            console.error('Failed to load player data:', e);
-            showWelcomeScreen();
-        }
-    } else {
+    // Since localStorage is not available, check if player has a name
+    if (!player.name) {
         showWelcomeScreen();
+    } else {
+        showMainGame();
     }
 }
 
@@ -96,12 +79,7 @@ function submitName() {
 }
 
 function savePlayer() {
-    try {
-        localStorage.setItem('gameOfChance_player', JSON.stringify(player));
-        updateDisplay();
-    } catch (e) {
-        console.error('Failed to save player data:', e);
-    }
+    updateDisplay();
 }
 
 // ====================================
@@ -266,9 +244,9 @@ function noMatchGame() {
         return;
     }
 
-    noMatchGame.userNumbers = [];
-    noMatchGame.dealerNumbers = [];
-    noMatchGame.wager = 0;
+    noMatchGameState.userNumbers = [];
+    noMatchGameState.dealerNumbers = [];
+    noMatchGameState.wager = 0;
 
     const gameArea = document.getElementById('gameArea');
     gameArea.innerHTML = `
@@ -302,8 +280,8 @@ function startNumberSelection() {
         return;
     }
 
-    noMatchGame.wager = wager;
-    noMatchGame.userNumbers = [];
+    noMatchGameState.wager = wager;
+    noMatchGameState.userNumbers = [];
 
     const gameArea = document.getElementById('gameArea');
     gameArea.innerHTML = `
@@ -339,32 +317,32 @@ function addUserNumber() {
         return;
     }
 
-    if (noMatchGame.userNumbers.includes(number)) {
+    if (noMatchGameState.userNumbers.includes(number)) {
         showNotification('You already selected this number!', 'lose');
         numberInput.value = '';
         numberInput.focus();
         return;
     }
 
-    if (noMatchGame.userNumbers.length >= 8) {
+    if (noMatchGameState.userNumbers.length >= 8) {
         showNotification('You already selected 8 numbers!', 'lose');
         return;
     }
 
-    noMatchGame.userNumbers.push(number);
+    noMatchGameState.userNumbers.push(number);
     numberInput.value = '';
     numberInput.focus();
     
     updateSelectedNumbersDisplay();
     
-    if (noMatchGame.userNumbers.length === 8) {
+    if (noMatchGameState.userNumbers.length === 8) {
         document.getElementById('dealBtn').disabled = false;
         showNotification('All 8 numbers selected! Click "Deal Dealer Cards" to continue.', 'info');
     }
 }
 
 function clearUserNumbers() {
-    noMatchGame.userNumbers = [];
+    noMatchGameState.userNumbers = [];
     updateSelectedNumbersDisplay();
     document.getElementById('dealBtn').disabled = true;
     document.getElementById('numberInput').focus();
@@ -374,13 +352,13 @@ function updateSelectedNumbersDisplay() {
     const display = document.getElementById('selectedNumbers');
     const count = document.getElementById('numberCount');
     
-    count.textContent = `${noMatchGame.userNumbers.length}/8`;
+    count.textContent = `${noMatchGameState.userNumbers.length}/8`;
     
-    if (noMatchGame.userNumbers.length === 0) {
+    if (noMatchGameState.userNumbers.length === 0) {
         display.innerHTML = '<p class="text-muted" style="text-align: center; padding: 20px;">No numbers selected yet</p>';
     } else {
         let html = '<div class="numbers-grid">';
-        noMatchGame.userNumbers.forEach((num, index) => {
+        noMatchGameState.userNumbers.forEach((num, index) => {
             html += `<div class="number-cell user-number" style="--i: ${index}">${num}</div>`;
         });
         html += '</div>';
@@ -398,15 +376,15 @@ function dealDealerCards() {
     
     setTimeout(() => {
         // Generate 8 random numbers for dealer
-        noMatchGame.dealerNumbers = [];
+        noMatchGameState.dealerNumbers = [];
         for (let i = 0; i < 8; i++) {
-            noMatchGame.dealerNumbers.push(Math.floor(Math.random() * 100));
+            noMatchGameState.dealerNumbers.push(Math.floor(Math.random() * 100));
         }
 
         // Check for matches
         const matches = [];
-        for (let userNum of noMatchGame.userNumbers) {
-            if (noMatchGame.dealerNumbers.includes(userNum)) {
+        for (let userNum of noMatchGameState.userNumbers) {
+            if (noMatchGameState.dealerNumbers.includes(userNum)) {
                 matches.push(userNum);
             }
         }
@@ -414,7 +392,7 @@ function dealDealerCards() {
         // Display both sets of numbers
         let gridHTML = '<h4 style="margin-top: 24px; color: var(--text-secondary); font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Your Numbers</h4>';
         gridHTML += '<div class="numbers-grid">';
-        noMatchGame.userNumbers.forEach((num, index) => {
+        noMatchGameState.userNumbers.forEach((num, index) => {
             const isMatch = matches.includes(num) ? ' match' : '';
             gridHTML += `<div class="number-cell user-number${isMatch}" style="--i: ${index}">${num}</div>`;
         });
@@ -422,7 +400,7 @@ function dealDealerCards() {
 
         gridHTML += '<h4 style="margin-top: 24px; color: var(--text-secondary); font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Dealer\'s Numbers</h4>';
         gridHTML += '<div class="numbers-grid">';
-        noMatchGame.dealerNumbers.forEach((num, index) => {
+        noMatchGameState.dealerNumbers.forEach((num, index) => {
             const isMatch = matches.includes(num) ? ' match' : '';
             gridHTML += `<div class="number-cell dealer-number${isMatch}" style="--i: ${index + 8}">${num}</div>`;
         });
@@ -430,15 +408,15 @@ function dealDealerCards() {
 
         let resultHTML = '<div class="result-message ';
         if (matches.length > 0) {
-            player.credits -= noMatchGame.wager;
+            player.credits -= noMatchGameState.wager;
             resultHTML += 'lose"><span class="emoji">💔</span>';
-            resultHTML += `The dealer matched ${matches.length} number(s): <strong>${matches.join(', ')}</strong>! You lose ${noMatchGame.wager} credits.`;
+            resultHTML += `The dealer matched ${matches.length} number(s): <strong>${matches.join(', ')}</strong>! You lose ${noMatchGameState.wager} credits.`;
         } else {
-            player.credits += noMatchGame.wager;
+            player.credits += noMatchGameState.wager;
             player.totalWins++;
             resultHTML += 'win"><span class="emoji">🎊</span>';
-            resultHTML += `There were no matches! You win <strong>${noMatchGame.wager} credits</strong>!`;
-            showNotification(`💸 Won ${noMatchGame.wager} credits!`, 'win');
+            resultHTML += `There were no matches! You win <strong>${noMatchGameState.wager} credits</strong>!`;
+            showNotification(`💸 Won ${noMatchGameState.wager} credits!`, 'win');
         }
         resultHTML += '</div>';
         
@@ -747,7 +725,7 @@ function quit() {
         <section class="game-container glass-card">
             <h3>Quit Game</h3>
             <p class="game-description">
-                Are you sure you want to quit? Your progress has been automatically saved.
+                Are you sure you want to quit? Your progress will be lost when you refresh the page.
             </p>
             <p class="game-description" style="margin-top: 16px;">
                 Current Balance: <strong>${player.credits} credits</strong><br>
@@ -764,7 +742,7 @@ function quit() {
 }
 
 function confirmQuit() {
-    showNotification('Thanks for playing! Your progress has been saved.', 'info');
+    showNotification('Thanks for playing!', 'info');
     setTimeout(() => {
         backToMenu();
     }, 2000);
