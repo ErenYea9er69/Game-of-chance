@@ -1,4 +1,3 @@
-
 /* ====================================
    GAME OF CHANCE - ENHANCED VERSION
    ==================================== */
@@ -25,6 +24,12 @@ let aceGame = {
     wagerOne: 0,
     wagerTwo: 0,
     revealed: -1
+};
+
+let noMatchGame = {
+    userNumbers: [],
+    dealerNumbers: [],
+    wager: 0
 };
 
 // ====================================
@@ -261,26 +266,33 @@ function noMatchGame() {
         return;
     }
 
+    noMatchGame.userNumbers = [];
+    noMatchGame.dealerNumbers = [];
+    noMatchGame.wager = 0;
+
     const gameArea = document.getElementById('gameArea');
     gameArea.innerHTML = `
         <section class="game-container glass-card">
             <h3>No Match Dealer</h3>
             <p class="game-description">
-                In this game, you can wager up to all of your credits. The dealer will 
-                deal out <strong>16 random numbers</strong> between 0 and 99. If there are 
-                <strong>no matches</strong> among them, you <strong>double your money</strong>!
+                In this game, you can wager up to all of your credits. You will pick 
+                <strong>8 numbers between 0 and 99</strong>. The dealer will then deal 
+                <strong>8 random numbers</strong>. If there are <strong>no matches</strong> 
+                between your numbers and the dealer's numbers, you <strong>double your money</strong>!
             </p>
             <input type="number" id="wagerAmount" min="1" max="${player.credits}" placeholder="Enter your wager">
-            <div class="action-buttons">
-                <button onclick="playNoMatch()" class="btn-primary">Deal Cards</button>
-                <button onclick="backToMenu()" class="btn-secondary">Back to Menu</button>
-            </div>
+            <button onclick="startNumberSelection()" class="btn-primary" style="width: 100%; margin-top: 12px;">
+                Continue to Number Selection
+            </button>
+            <button onclick="backToMenu()" class="btn-secondary" style="width: 100%; margin-top: 12px;">
+                Back to Menu
+            </button>
             <div id="noMatchResult"></div>
         </section>
     `;
 }
 
-function playNoMatch() {
+function startNumberSelection() {
     const wagerInput = document.getElementById('wagerAmount');
     const wager = parseInt(wagerInput.value);
     
@@ -290,53 +302,149 @@ function playNoMatch() {
         return;
     }
 
+    noMatchGame.wager = wager;
+    noMatchGame.userNumbers = [];
+
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = `
+        <section class="game-container glass-card">
+            <h3>No Match Dealer - Select Your Numbers</h3>
+            <p class="game-description">
+                Wager: <strong>${wager} credits</strong><br>
+                Select 8 numbers between 0 and 99. Numbers selected: <strong id="numberCount">0/8</strong>
+            </p>
+            <div id="selectedNumbers" class="selected-numbers-display"></div>
+            <input type="number" id="numberInput" min="0" max="99" placeholder="Enter a number (0-99)" autofocus>
+            <div class="action-buttons">
+                <button onclick="addUserNumber()" class="btn-primary">Add Number</button>
+                <button onclick="clearUserNumbers()" class="btn-secondary">Clear All</button>
+            </div>
+            <button onclick="dealDealerCards()" id="dealBtn" class="btn-primary" style="width: 100%; margin-top: 16px;" disabled>
+                Deal Dealer Cards
+            </button>
+            <div id="noMatchResult"></div>
+        </section>
+    `;
+    
+    updateSelectedNumbersDisplay();
+}
+
+function addUserNumber() {
+    const numberInput = document.getElementById('numberInput');
+    const number = parseInt(numberInput.value);
+    
+    if (isNaN(number) || number < 0 || number > 99) {
+        showNotification('Please enter a valid number between 0 and 99', 'lose');
+        numberInput.focus();
+        return;
+    }
+
+    if (noMatchGame.userNumbers.includes(number)) {
+        showNotification('You already selected this number!', 'lose');
+        numberInput.value = '';
+        numberInput.focus();
+        return;
+    }
+
+    if (noMatchGame.userNumbers.length >= 8) {
+        showNotification('You already selected 8 numbers!', 'lose');
+        return;
+    }
+
+    noMatchGame.userNumbers.push(number);
+    numberInput.value = '';
+    numberInput.focus();
+    
+    updateSelectedNumbersDisplay();
+    
+    if (noMatchGame.userNumbers.length === 8) {
+        document.getElementById('dealBtn').disabled = false;
+        showNotification('All 8 numbers selected! Click "Deal Dealer Cards" to continue.', 'info');
+    }
+}
+
+function clearUserNumbers() {
+    noMatchGame.userNumbers = [];
+    updateSelectedNumbersDisplay();
+    document.getElementById('dealBtn').disabled = true;
+    document.getElementById('numberInput').focus();
+}
+
+function updateSelectedNumbersDisplay() {
+    const display = document.getElementById('selectedNumbers');
+    const count = document.getElementById('numberCount');
+    
+    count.textContent = `${noMatchGame.userNumbers.length}/8`;
+    
+    if (noMatchGame.userNumbers.length === 0) {
+        display.innerHTML = '<p class="text-muted" style="text-align: center; padding: 20px;">No numbers selected yet</p>';
+    } else {
+        let html = '<div class="numbers-grid">';
+        noMatchGame.userNumbers.forEach((num, index) => {
+            html += `<div class="number-cell user-number" style="--i: ${index}">${num}</div>`;
+        });
+        html += '</div>';
+        display.innerHTML = html;
+    }
+}
+
+function dealDealerCards() {
     player.gamesPlayed++;
-    wagerInput.disabled = true;
     
     const resultDiv = document.getElementById('noMatchResult');
     resultDiv.innerHTML = '<div class="spinner"></div>';
     
+    document.getElementById('dealBtn').disabled = true;
+    
     setTimeout(() => {
-        const numbers = [];
-        for (let i = 0; i < 16; i++) {
-            numbers.push(Math.floor(Math.random() * 100));
+        // Generate 8 random numbers for dealer
+        noMatchGame.dealerNumbers = [];
+        for (let i = 0; i < 8; i++) {
+            noMatchGame.dealerNumbers.push(Math.floor(Math.random() * 100));
         }
 
-        let match = -1;
-        for (let i = 0; i < 15; i++) {
-            for (let j = i + 1; j < 16; j++) {
-                if (numbers[i] === numbers[j]) {
-                    match = numbers[i];
-                    break;
-                }
+        // Check for matches
+        const matches = [];
+        for (let userNum of noMatchGame.userNumbers) {
+            if (noMatchGame.dealerNumbers.includes(userNum)) {
+                matches.push(userNum);
             }
-            if (match !== -1) break;
         }
 
-        let gridHTML = '<div class="numbers-grid">';
-        numbers.forEach((num, index) => {
-            const isMatch = num === match ? ' match' : '';
-            gridHTML += `<div class="number-cell${isMatch}" style="--i: ${index}">${num}</div>`;
+        // Display both sets of numbers
+        let gridHTML = '<h4 style="margin-top: 24px; color: var(--text-secondary); font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Your Numbers</h4>';
+        gridHTML += '<div class="numbers-grid">';
+        noMatchGame.userNumbers.forEach((num, index) => {
+            const isMatch = matches.includes(num) ? ' match' : '';
+            gridHTML += `<div class="number-cell user-number${isMatch}" style="--i: ${index}">${num}</div>`;
+        });
+        gridHTML += '</div>';
+
+        gridHTML += '<h4 style="margin-top: 24px; color: var(--text-secondary); font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Dealer\'s Numbers</h4>';
+        gridHTML += '<div class="numbers-grid">';
+        noMatchGame.dealerNumbers.forEach((num, index) => {
+            const isMatch = matches.includes(num) ? ' match' : '';
+            gridHTML += `<div class="number-cell dealer-number${isMatch}" style="--i: ${index + 8}">${num}</div>`;
         });
         gridHTML += '</div>';
 
         let resultHTML = '<div class="result-message ';
-        if (match !== -1) {
-            player.credits -= wager;
+        if (matches.length > 0) {
+            player.credits -= noMatchGame.wager;
             resultHTML += 'lose"><span class="emoji">💔</span>';
-            resultHTML += `The dealer matched the number <strong>${match}</strong>! You lose ${wager} credits.`;
+            resultHTML += `The dealer matched ${matches.length} number(s): <strong>${matches.join(', ')}</strong>! You lose ${noMatchGame.wager} credits.`;
         } else {
-            player.credits += wager;
+            player.credits += noMatchGame.wager;
             player.totalWins++;
             resultHTML += 'win"><span class="emoji">🎊</span>';
-            resultHTML += `There were no matches! You win <strong>${wager} credits</strong>!`;
-            showNotification(`💸 Won ${wager} credits!`, 'win');
+            resultHTML += `There were no matches! You win <strong>${noMatchGame.wager} credits</strong>!`;
+            showNotification(`💸 Won ${noMatchGame.wager} credits!`, 'win');
         }
         resultHTML += '</div>';
         
         resultHTML += `
             <div class="action-buttons mt-4">
-                <button onclick="noMatchGame()" class="btn-primary">Play Again</button>
+                <button onclick="startGame('noMatch')" class="btn-primary">Play Again</button>
                 <button onclick="backToMenu()" class="btn-secondary">Back to Menu</button>
             </div>
         `;
@@ -676,6 +784,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Enter key on welcome screen
         if (e.key === 'Enter' && !document.getElementById('welcomeScreen').classList.contains('hidden')) {
             submitName();
+        }
+        
+        // Enter key on number input in No Match game
+        if (e.key === 'Enter' && document.getElementById('numberInput')) {
+            addUserNumber();
         }
     });
 });
