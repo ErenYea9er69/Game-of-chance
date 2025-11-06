@@ -494,6 +494,29 @@ input::placeholder {
     50% { transform: scale(1.1); }
 }
 
+/* User and Dealer number styling */
+.number-cell.user-number {
+    background: var(--bg-tertiary);
+    border-color: rgba(100, 150, 255, 0.2);
+}
+
+.number-cell.dealer-number {
+    background: var(--bg-tertiary);
+    border-color: rgba(255, 150, 100, 0.2);
+}
+
+.number-cell.user-number.match,
+.number-cell.dealer-number.match {
+    background: var(--accent-lose);
+    border-color: rgba(255, 100, 100, 0.4);
+}
+
+/* Selected numbers display */
+.selected-numbers-display {
+    min-height: 100px;
+    margin: 16px 0;
+}
+
 /* ====================================
    RESULT MESSAGES
    ==================================== */
