@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
-#include <sys/stat.h>
+#include <windows.h>
 #include <time.h>
 #include <stdlib.h>
-#include "hacking.h"
-#define DATAFILE "/var/chance.data" // File to store user data
+#define DATAFILE "chance.data" // File to store user data
 // Custom user struct to store information about users
 struct user {
  int uid;
