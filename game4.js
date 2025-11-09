@@ -11,14 +11,18 @@ window.Game4 = {
         }
         GameSystem.luckyWheelState = { wager: 0, spinning: false };
         const gameArea = document.getElementById('gameArea');
+        const randomGameBadge = GameSystem.isRandomGame ? '<div class="random-game-badge">🎲 RANDOM GAME MODE</div>' : '';
+        
         gameArea.innerHTML = `
             <section class="game-container glass-card">
+                ${randomGameBadge}
                 <h3>Lucky Wheel</h3>
                 <p class="game-description">
                     Spin the wheel of fortune! The wheel has different prize multipliers:
                     <strong>0x (lose all)</strong>, <strong>0.5x</strong>, <strong>1x (return)</strong>, 
                     <strong>2x</strong>, <strong>5x</strong>, and the rare <strong>10x jackpot</strong>!
                     The bigger the prize, the smaller the section on the wheel.
+                    ${GameSystem.isRandomGame ? '<br><strong>(Wins will be doubled with 2x Random Game Bonus!)</strong>' : ''}
                 </p>
                 <input type="number" id="wheelWager" min="1" max="${GameSystem.player.credits}" placeholder="Enter your wager" autofocus>
                 <button onclick="Game4.spinWheel()" class="btn-primary" style="width: 100%; margin-top: 12px;">
@@ -99,17 +103,15 @@ window.Game4 = {
         const textRadius = 95;
 
         let svg = '';
-        let currentAngle = 0; // Start from right side (0 degrees)
+        let currentAngle = 0;
 
         segments.forEach((seg, index) => {
             const startAngle = currentAngle;
             const endAngle = currentAngle + anglePerSegment;
             
-            // Convert angles to radians
             const startRad = (startAngle * Math.PI) / 180;
             const endRad = (endAngle * Math.PI) / 180;
             
-            // Calculate segment path
             const x1 = centerX + radius * Math.cos(startRad);
             const y1 = centerY + radius * Math.sin(startRad);
             const x2 = centerX + radius * Math.cos(endRad);
@@ -124,7 +126,6 @@ window.Game4 = {
                       stroke-width="2"/>
             `;
             
-            // Add text in the middle of the segment
             const textAngle = startAngle + anglePerSegment / 2;
             const textRad = (textAngle * Math.PI) / 180;
             const textX = centerX + textRadius * Math.cos(textRad);
@@ -145,7 +146,6 @@ window.Game4 = {
             currentAngle = endAngle;
         });
 
-        // Add center circle
         svg += `
             <circle cx="${centerX}" cy="${centerY}" r="25" 
                     fill="var(--bg-secondary)" 
@@ -161,16 +161,7 @@ window.Game4 = {
         const targetIndex = segments.indexOf(selectedSegment);
         const segmentAngle = 360 / segments.length;
         
-        // The pointer is at the top (270 degrees in standard coords, or -90 degrees)
-        // Calculate which angle should be at the top to point at the selected segment
-        // Segments start at 0 degrees (right side) and go clockwise
-        
-        // The center of the target segment (in the original coordinate system)
         const segmentCenterAngle = targetIndex * segmentAngle + segmentAngle / 2;
-        
-        // We want this segment center to be at 270 degrees (top, where pointer is)
-        // So we need to rotate: 270 - segmentCenterAngle
-        // But we add multiple full rotations for the spin effect
         const fullSpins = 5;
         const targetRotation = fullSpins * 360 + (270 - segmentCenterAngle);
         
@@ -183,7 +174,8 @@ window.Game4 = {
 
     showWheelResult: function(segment) {
         const resultDiv = document.getElementById('wheelResult');
-        const winAmount = Math.floor(GameSystem.luckyWheelState.wager * segment.multiplier);
+        const baseWinAmount = Math.floor(GameSystem.luckyWheelState.wager * segment.multiplier);
+        const actualWinAmount = (GameSystem.isRandomGame && segment.multiplier > 0) ? baseWinAmount * 2 : baseWinAmount;
         
         let resultHTML = '<div class="result-message ';
         let notificationMessage = '';
@@ -194,7 +186,7 @@ window.Game4 = {
             resultHTML += `The wheel landed on <strong>0x</strong>! You lost ${GameSystem.luckyWheelState.wager} credits.`;
             notificationMessage = `Lost ${GameSystem.luckyWheelState.wager} credits`;
         } else if (segment.multiplier < 1) {
-            const lostAmount = GameSystem.luckyWheelState.wager - winAmount;
+            const lostAmount = GameSystem.luckyWheelState.wager - actualWinAmount;
             GameSystem.player.credits -= lostAmount;
             resultHTML += 'lose"><span class="emoji">😕</span>';
             resultHTML += `The wheel landed on <strong>${segment.multiplier}x</strong>! You lost ${lostAmount} credits.`;
@@ -204,11 +196,14 @@ window.Game4 = {
             resultHTML += `The wheel landed on <strong>1x</strong>! You got your ${GameSystem.luckyWheelState.wager} credits back.`;
             notificationMessage = 'Got your wager back';
         } else {
-            const profit = winAmount - GameSystem.luckyWheelState.wager;
+            const profit = actualWinAmount - GameSystem.luckyWheelState.wager;
             GameSystem.player.credits += profit;
             GameSystem.player.totalWins++;
             resultHTML += 'win"><span class="emoji">🎉</span>';
             resultHTML += `The wheel landed on <strong>${segment.multiplier}x</strong>! You won ${profit} credits!`;
+            if (GameSystem.isRandomGame) {
+                resultHTML += ' <strong>(2x Random Game Bonus!)</strong>';
+            }
             notificationMessage = `Won ${profit} credits!`;
             GameSystem.showNotification(`🎰 ${notificationMessage}`, 'win');
         }
@@ -225,5 +220,6 @@ window.Game4 = {
         GameSystem.luckyWheelState.spinning = false;
         GameSystem.updateHighscore();
         GameSystem.savePlayer();
+        GameSystem.isRandomGame = false;
     }
 };

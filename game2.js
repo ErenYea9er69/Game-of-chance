@@ -16,14 +16,18 @@ window.Game2 = {
         GameSystem.noMatchGameState.wager = 0;
 
         const gameArea = document.getElementById('gameArea');
+        const randomGameBadge = GameSystem.isRandomGame ? '<div class="random-game-badge">🎲 RANDOM GAME MODE</div>' : '';
+        
         gameArea.innerHTML = `
             <section class="game-container glass-card">
+                ${randomGameBadge}
                 <h3>No Match Dealer</h3>
                 <p class="game-description">
                     In this game, you can wager up to all of your credits. You will pick 
                     <strong>8 numbers between 0 and 99</strong>. The dealer will then deal 
                     <strong>8 random numbers</strong>. If there are <strong>no matches</strong> 
-                    between your numbers and the dealer's numbers, you <strong>double your money</strong>!
+                    between your numbers and the dealer's numbers, you <strong>${GameSystem.isRandomGame ? 'quadruple' : 'double'} your money</strong>!
+                    ${GameSystem.isRandomGame ? '<br><strong>(2x Random Game Bonus!)</strong>' : ''}
                 </p>
                 <input type="number" id="wagerAmount" min="1" max="${GameSystem.player.credits}" placeholder="Enter your wager">
                 <button onclick="Game2.startNumberSelection()" class="btn-primary" style="width: 100%; margin-top: 12px;">
@@ -176,11 +180,16 @@ window.Game2 = {
                 resultHTML += 'lose"><span class="emoji">💔</span>';
                 resultHTML += `The dealer matched ${matches.length} number(s): <strong>${matches.join(', ')}</strong>! You lose ${GameSystem.noMatchGameState.wager} credits.`;
             } else {
-                GameSystem.player.credits += GameSystem.noMatchGameState.wager;
+                const baseWin = GameSystem.noMatchGameState.wager;
+                const actualWin = GameSystem.isRandomGame ? baseWin * 2 : baseWin;
+                GameSystem.player.credits += actualWin;
                 GameSystem.player.totalWins++;
                 resultHTML += 'win"><span class="emoji">🎊</span>';
-                resultHTML += `There were no matches! You win <strong>${GameSystem.noMatchGameState.wager} credits</strong>!`;
-                GameSystem.showNotification(`💸 Won ${GameSystem.noMatchGameState.wager} credits!`, 'win');
+                resultHTML += `There were no matches! You win <strong>${actualWin} credits</strong>!`;
+                if (GameSystem.isRandomGame) {
+                    resultHTML += ' <strong>(2x Random Game Bonus!)</strong>';
+                }
+                GameSystem.showNotification(`💸 Won ${actualWin} credits!`, 'win');
             }
             resultHTML += '</div>';
             
@@ -194,6 +203,7 @@ window.Game2 = {
             resultDiv.innerHTML = gridHTML + resultHTML;
             GameSystem.updateHighscore();
             GameSystem.savePlayer();
+            GameSystem.isRandomGame = false;
         }, 800);
     }
 };

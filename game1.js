@@ -12,13 +12,16 @@ window.Game1 = {
         }
 
         const gameArea = document.getElementById('gameArea');
+        const randomGameBadge = GameSystem.isRandomGame ? '<div class="random-game-badge">🎲 RANDOM GAME MODE</div>' : '';
+        
         gameArea.innerHTML = `
             <section class="game-container glass-card">
+                ${randomGameBadge}
                 <h3>Pick a Number</h3>
                 <p class="game-description">
                     This game costs <strong>10 credits</strong> to play. Simply pick a number 
                     between 1 and 20. If you pick the winning number, you will win the 
-                    <strong>jackpot of 100 credits</strong>!
+                    <strong>jackpot of ${GameSystem.isRandomGame ? '200' : '100'} credits</strong>${GameSystem.isRandomGame ? ' (2x bonus!)' : ''}!
                 </p>
                 <input type="number" id="userPick" min="1" max="20" placeholder="Enter a number (1-20)" autofocus>
                 <div class="action-buttons">
@@ -53,11 +56,16 @@ window.Game1 = {
             let resultHTML = '<div class="result-message ';
             
             if (pick === winning) {
-                GameSystem.player.credits += 100;
+                const baseWin = 100;
+                const actualWin = GameSystem.isRandomGame ? baseWin * 2 : baseWin;
+                GameSystem.player.credits += actualWin;
                 GameSystem.player.totalWins++;
                 resultHTML += 'win"><span class="emoji">🎉</span>';
-                resultHTML += `<strong>JACKPOT!</strong> The winning number was ${winning}. You won 100 credits!`;
-                GameSystem.showNotification('💰 JACKPOT! +100 credits', 'win');
+                resultHTML += `<strong>JACKPOT!</strong> The winning number was ${winning}. You won ${actualWin} credits!`;
+                if (GameSystem.isRandomGame) {
+                    resultHTML += ' <strong>(2x Random Game Bonus!)</strong>';
+                }
+                GameSystem.showNotification(`💰 JACKPOT! +${actualWin} credits`, 'win');
             } else {
                 resultHTML += 'lose"><span class="emoji">😔</span>';
                 resultHTML += `The winning number was ${winning}. You picked ${pick}. Better luck next time!`;
@@ -74,6 +82,7 @@ window.Game1 = {
             resultDiv.innerHTML = resultHTML;
             GameSystem.updateHighscore();
             GameSystem.savePlayer();
+            GameSystem.isRandomGame = false;
         }, 1500);
     }
 };

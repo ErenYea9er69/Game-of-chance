@@ -15,13 +15,16 @@ window.Game3 = {
         GameSystem.aceGame.ace = Math.floor(Math.random() * 3);
 
         const gameArea = document.getElementById('gameArea');
+        const randomGameBadge = GameSystem.isRandomGame ? '<div class="random-game-badge">🎲 RANDOM GAME MODE</div>' : '';
+        
         gameArea.innerHTML = `
             <section class="game-container glass-card">
+                ${randomGameBadge}
                 <h3>Find the Ace</h3>
                 <p class="game-description">
                     In this game, you can wager up to all of your credits. Three cards will be 
                     dealt out: <strong>two queens and one ace</strong>. If you find the ace, 
-                    you will win your wager. After choosing a card, one of the queens will be 
+                    you will win your wager${GameSystem.isRandomGame ? ' <strong>doubled (2x Random Game Bonus!)</strong>' : ''}. After choosing a card, one of the queens will be 
                     revealed. You may then change your pick or increase your wager.
                 </p>
                 <input type="number" id="aceWager" min="1" max="${GameSystem.player.credits}" placeholder="Enter your wager">
@@ -152,16 +155,24 @@ window.Game3 = {
 
         resultHTML += '<div class="result-message ';
         if (GameSystem.aceGame.pick === GameSystem.aceGame.ace) {
-            GameSystem.player.credits += GameSystem.aceGame.wagerOne;
+            const baseWin1 = GameSystem.aceGame.wagerOne;
+            const baseWin2 = GameSystem.aceGame.wagerTwo;
+            const actualWin1 = GameSystem.isRandomGame ? baseWin1 * 2 : baseWin1;
+            const actualWin2 = GameSystem.isRandomGame ? baseWin2 * 2 : baseWin2;
+            
+            GameSystem.player.credits += actualWin1;
             GameSystem.player.totalWins++;
             resultHTML += 'win"><span class="emoji">🎉</span>';
-            resultHTML += `You won <strong>${GameSystem.aceGame.wagerOne} credits</strong> from your first wager`;
-            if (GameSystem.aceGame.wagerTwo > 0) {
-                GameSystem.player.credits += GameSystem.aceGame.wagerTwo;
-                resultHTML += ` and an additional <strong>${GameSystem.aceGame.wagerTwo} credits</strong> from your second wager!`;
+            resultHTML += `You won <strong>${actualWin1} credits</strong> from your first wager`;
+            if (actualWin2 > 0) {
+                GameSystem.player.credits += actualWin2;
+                resultHTML += ` and an additional <strong>${actualWin2} credits</strong> from your second wager!`;
+            }
+            if (GameSystem.isRandomGame) {
+                resultHTML += ' <strong>(2x Random Game Bonus!)</strong>';
             }
             resultHTML += '!';
-            GameSystem.showNotification(`🎰 Won ${GameSystem.aceGame.wagerOne + GameSystem.aceGame.wagerTwo} credits!`, 'win');
+            GameSystem.showNotification(`🎰 Won ${actualWin1 + actualWin2} credits!`, 'win');
         } else {
             GameSystem.player.credits -= GameSystem.aceGame.wagerOne;
             resultHTML += 'lose"><span class="emoji">😞</span>';
@@ -184,5 +195,6 @@ window.Game3 = {
         GameSystem.updateHighscore();
         document.getElementById('aceGameArea').innerHTML = resultHTML;
         GameSystem.savePlayer();
+        GameSystem.isRandomGame = false;
     }
 };
