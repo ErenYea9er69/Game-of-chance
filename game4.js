@@ -93,11 +93,14 @@ window.Game4 = {
             const segmentAngle = 360 / segments.length;
             const targetIndex = segments.indexOf(selectedSegment);
             
-            // Calculate the target angle - we need to align the CENTER of the segment with the pointer at top
-            // The pointer is at 0 degrees (top), so we need to rotate so the target segment's center points up
-            // Since we start at -90 degrees, we need to account for that offset
-            const segmentCenterOffset = segmentAngle / 2;
-            const targetAngle = 360 * spins - (targetIndex * segmentAngle + segmentCenterOffset);
+            // The wheel starts with first segment at top (pointer at 0 degrees = top)
+            // We need to rotate so the selected segment's center aligns with the pointer
+            // Since segments are drawn starting at -90-(anglePerSegment/2), 
+            // the first segment center is at 0 degrees (top)
+            // To put segment N at the top, we rotate by -N * segmentAngle degrees
+            const baseRotation = 360 * spins;
+            const segmentRotation = targetIndex * segmentAngle;
+            const targetAngle = baseRotation - segmentRotation;
             
             wheelSVG.style.transform = `rotate(${targetAngle}deg)`;
             
@@ -115,8 +118,9 @@ window.Game4 = {
         const radius = 140;
         const textRadius = 95;
         
-        // Start from -90 degrees so first segment center is at top (0 degrees)
-        let currentAngle = -90 - (anglePerSegment / 2);
+        // Start drawing so that the first segment's center is at the top (0 degrees)
+        // This means starting at -anglePerSegment/2
+        let currentAngle = -(anglePerSegment / 2);
         let svg = '';
         
         segments.forEach((seg, i) => {
@@ -137,6 +141,7 @@ window.Game4 = {
                       stroke-width="2"/>
             `;
             
+            // Place text at the center of the segment
             const textAngle = startAngle + anglePerSegment / 2;
             const textX = centerX + textRadius * Math.cos((textAngle * Math.PI) / 180);
             const textY = centerY + textRadius * Math.sin((textAngle * Math.PI) / 180);
@@ -156,6 +161,7 @@ window.Game4 = {
             currentAngle = endAngle;
         });
         
+        // Center circle
         svg += `
             <circle cx="${centerX}" cy="${centerY}" r="25" 
                     fill="var(--bg-secondary)" 
