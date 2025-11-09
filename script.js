@@ -17,6 +17,8 @@ window.GameSystem = {
     
     // Game states
     currentGame: null,
+    isRandomGame: false,
+    randomGamePenalty: 10,
     aceGame: {
         ace: 0,
         pick: -1,
@@ -41,6 +43,10 @@ window.GameSystem = {
         streak: 0,
         maxStreak: 5,
         playing: false
+    },
+    chuckALuckState: {
+        selectedNumber: null,
+        wager: 0
     },
     
     // Core UI functions
@@ -112,12 +118,36 @@ window.GameSystem = {
     },
     
     backToMenu: function() {
+        // Check if quitting from random game
+        if (this.isRandomGame && this.currentGame) {
+            // Apply penalty
+            this.player.credits -= this.randomGamePenalty;
+            this.showNotification(`-${this.randomGamePenalty} credits for quitting random game`, 'lose');
+            this.savePlayer();
+        }
+        
         document.getElementById('gameArea').innerHTML = '';
         document.getElementById('mainMenu').classList.remove('hidden');
         this.currentGame = null;
+        this.isRandomGame = false;
         document.getElementById('mainMenu').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 };
+
+// ====================================
+// RANDOM GAME FUNCTIONALITY
+// ====================================
+function startRandomGame() {
+    const games = ['pickNumber', 'noMatch', 'findAce', 'luckyWheel', 'highLow', 'overUnder7', 'chuckALuck'];
+    const randomGame = games[Math.floor(Math.random() * games.length)];
+    
+    GameSystem.isRandomGame = true;
+    GameSystem.showNotification('🎲 Random Game Mode Active! Quit = -10 credits, Win = 2x prize', 'info');
+    
+    setTimeout(() => {
+        startGame(randomGame);
+    }, 500);
+}
 
 // ====================================
 // MENU MANAGEMENT
@@ -144,6 +174,12 @@ function startGame(gameType) {
             break;
         case 'highLow':
             window.Game5.highLowGame();
+            break;
+        case 'overUnder7':
+            window.Game6.overUnder7Game();
+            break;
+        case 'chuckALuck':
+            window.Game7.chuckALuckGame();
             break;
     }
     
@@ -297,12 +333,14 @@ function showWelcomeScreen() {
     document.getElementById('welcomeScreen').classList.remove('hidden');
     document.getElementById('userInfo').classList.add('hidden');
     document.getElementById('mainMenu').classList.add('hidden');
+    document.getElementById('randomGameSection').classList.add('hidden');
 }
 
 function showMainGame() {
     document.getElementById('welcomeScreen').classList.add('hidden');
     document.getElementById('userInfo').classList.remove('hidden');
     document.getElementById('mainMenu').classList.remove('hidden');
+    document.getElementById('randomGameSection').classList.remove('hidden');
     GameSystem.updateDisplay();
     GameSystem.animateCredits();
 }
@@ -355,6 +393,7 @@ window.addEventListener('beforeunload', (e) => {
 
 // Make functions available globally for HTML onclick handlers
 window.startGame = startGame;
+window.startRandomGame = startRandomGame;
 window.backToMenu = () => GameSystem.backToMenu();
 window.showHighscore = showHighscore;
 window.changeName = changeName;
