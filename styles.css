@@ -243,38 +243,27 @@ body::before {
 /* ====================================
    MENU SECTION
    ==================================== */
-.menu h2 {
-    font-size: 18px;
-    font-weight: 400;
-    margin-bottom: 24px;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    position: relative;
-}
-
-.menu-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-/* ====================================
-   MENU HEADER WITH DICE ICON
-   ==================================== */
-.menu-header {
+.menu-header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
 }
 
-.menu-header h2 {
+.menu h2 {
+    font-size: 18px;
+    font-weight: 400;
     margin-bottom: 0;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 14px;
+}
+
+.menu-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 /* ====================================
@@ -295,6 +284,7 @@ body::before {
     transition: all var(--transition-medium);
     position: relative;
     margin: 0;
+    flex-shrink: 0;
 }
 
 .random-dice-icon:hover {
@@ -315,8 +305,8 @@ body::before {
 .random-dice-tooltip {
     position: absolute;
     top: calc(100% + 12px);
-    left: 50%;
-    transform: translateX(-50%) scale(0.9);
+    right: 0;
+    transform: scale(0.9);
     background: var(--bg-secondary);
     border: 1px solid var(--border-medium);
     border-radius: 8px;
@@ -337,8 +327,7 @@ body::before {
     content: '';
     position: absolute;
     top: -6px;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 12px;
     width: 0;
     height: 0;
     border-left: 6px solid transparent;
@@ -348,7 +337,7 @@ body::before {
 
 .random-dice-icon:hover .random-dice-tooltip {
     opacity: 1;
-    transform: translateX(-50%) scale(1);
+    transform: scale(1);
 }
 
 .random-dice-tooltip strong {
@@ -1250,16 +1239,6 @@ input::placeholder {
     .chuck-number-btn {
         font-size: 32px;
     }
-    
-    .random-dice-tooltip {
-        left: auto;
-        right: 0;
-        transform: translateX(0) scale(0.9);
-    }
-    
-    .random-dice-icon:hover .random-dice-tooltip {
-        transform: translateX(0) scale(1);
-    }
 }
 
 @media (max-width: 480px) {
@@ -1283,7 +1262,11 @@ input::placeholder {
     
     .menu h2 {
         font-size: 12px;
+    }
+    
+    .menu-header-container {
         flex-wrap: wrap;
+        gap: 12px;
     }
     
     .random-dice-icon {
