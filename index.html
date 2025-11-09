@@ -45,17 +45,6 @@
             </section>
         </div>
 
-        <!-- Random Game Dice Button -->
-        <section class="random-game-section" id="randomGameSection">
-            <button onclick="startRandomGame()" class="random-game-btn">
-                <span class="dice-icon">🎲</span>
-                <div class="random-game-text">
-                    <div class="random-game-title">FEELING LUCKY?</div>
-                    <div class="random-game-subtitle">Random Game • Quit: -10 credits • Win: 2x prize</div>
-                </div>
-            </button>
-        </section>
-
         <!-- User Information Panel -->
         <section class="user-info" id="userInfo">
             <div class="info-item">
@@ -74,7 +63,17 @@
 
         <!-- Main Menu -->
         <section class="menu glass-card" id="mainMenu">
-            <h2>Select Your Game</h2>
+            <h2>
+                Select Your Game
+                <button onclick="startRandomGame()" class="random-dice-icon" id="randomDiceBtn" title="Random Game Mode">
+                    🎲
+                    <div class="random-dice-tooltip">
+                        <strong>RANDOM GAME</strong>
+                        <span>Quit: -10 credits</span>
+                        <span>Win: 2x prize!</span>
+                    </div>
+                </button>
+            </h2>
             <nav class="menu-options">
                 <button onclick="startGame('pickNumber')" class="menu-btn">
                     <span>01</span> — Pick a Number
