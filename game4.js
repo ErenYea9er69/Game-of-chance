@@ -64,6 +64,8 @@ window.Game4 = {
         ];
         
         const totalWeight = segments.reduce((sum, seg) => sum + seg.weight, 0);
+        
+        // 1. Determine the winning segment
         let random = Math.random() * totalWeight;
         let selectedSegment = segments[0];
         
@@ -75,65 +77,79 @@ window.Game4 = {
             }
         }
         
+        // 2. Draw the wheel
         const wheelContainer = document.getElementById('wheelContainer');
         wheelContainer.innerHTML = `
             <div class="wheel-wrapper">
                 <div class="wheel-pointer"></div>
                 <div class="wheel-container-inner">
                     <svg id="wheelSVG" viewBox="0 0 300 300" class="wheel-svg">
-                        ${this.createWheelSegments(segments)}
+                        ${this.createWheelSegments(segments, totalWeight)}
                     </svg>
                 </div>
             </div>
         `;
         
+        // 3. Calculate rotation angle
+        // We need to find the middle angle of the winning segment
+        let currentAngle = 0;
+        let targetMiddleAngle = 0;
+
+        for (const seg of segments) {
+            const segmentAngle = (seg.weight / totalWeight) * 360;
+            if (seg === selectedSegment) {
+                // Found the segment, its middle angle is its start + half its size
+                targetMiddleAngle = currentAngle + (segmentAngle / 2);
+                break;
+            }
+            // Add this segment's angle to move to the next
+            currentAngle += segmentAngle;
+        }
+
+        // 4. Spin the wheel
         setTimeout(() => {
             const wheelSVG = document.getElementById('wheelSVG');
-            const spins = 5 + Math.random() * 3;
-            const segmentAngle = 360 / segments.length;
-            const targetIndex = segments.indexOf(selectedSegment);
-            
-            // The wheel starts with first segment at top (pointer at 0 degrees = top)
-            // We need to rotate so the selected segment's center aligns with the pointer
-            // Since segments are drawn starting at -90-(anglePerSegment/2), 
-            // the first segment center is at 0 degrees (top)
-            // To put segment N at the top, we rotate by -N * segmentAngle degrees
+            const spins = 5 + Math.random() * 3; // Full spins
             const baseRotation = 360 * spins;
-            const segmentRotation = targetIndex * segmentAngle;
-            const targetAngle = baseRotation - segmentRotation;
+            
+            // We want the wheel to land at the targetMiddleAngle.
+            // The pointer is at 0 degrees (top).
+            // A rotation of -targetMiddleAngle will put that segment's center at the top.
+            const targetAngle = baseRotation - targetMiddleAngle;
             
             wheelSVG.style.transform = `rotate(${targetAngle}deg)`;
             
             setTimeout(() => {
                 this.showWheelResult(selectedSegment);
-            }, 4000);
+            }, 4000); // Wait for spin animation to finish
         }, 100);
     },
 
-    createWheelSegments: function(segments) {
-        const total = segments.length;
-        const anglePerSegment = 360 / total;
+    createWheelSegments: function(segments, totalWeight) {
         const centerX = 150;
         const centerY = 150;
         const radius = 140;
         const textRadius = 95;
         
-        // Start drawing so that the first segment's center is at the top (0 degrees)
-        // This means starting at -anglePerSegment/2
-        let currentAngle = -(anglePerSegment / 2);
+        let currentAngle = 0;
         let svg = '';
         
         segments.forEach((seg, i) => {
+            const segmentAngle = (seg.weight / totalWeight) * 360;
             const startAngle = currentAngle;
-            const endAngle = currentAngle + anglePerSegment;
+            const endAngle = currentAngle + segmentAngle;
             
-            const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
-            const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
-            const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
-            const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
+            // Convert polar coordinates (angles) to Cartesian (x, y)
+            // Note: SVG angles start from 3 o'clock. We subtract 90deg to start from 12 o'clock.
+            const x1 = centerX + radius * Math.cos(((startAngle - 90) * Math.PI) / 180);
+            const y1 = centerY + radius * Math.sin(((startAngle - 90) * Math.PI) / 180);
+            const x2 = centerX + radius * Math.cos(((endAngle - 90) * Math.PI) / 180);
+            const y2 = centerY + radius * Math.sin(((endAngle - 90) * Math.PI) / 180);
             
-            const largeArc = anglePerSegment > 180 ? 1 : 0;
+            // 0 for small arc, 1 for large arc
+            const largeArc = segmentAngle > 180 ? 1 : 0;
             
+            // SVG path data: Move, Line, Arc, Close
             svg += `
                 <path d="M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z" 
                       fill="${seg.color}" 
@@ -141,22 +157,25 @@ window.Game4 = {
                       stroke-width="2"/>
             `;
             
-            // Place text at the center of the segment
-            const textAngle = startAngle + anglePerSegment / 2;
-            const textX = centerX + textRadius * Math.cos((textAngle * Math.PI) / 180);
-            const textY = centerY + textRadius * Math.sin((textAngle * Math.PI) / 180);
+            // Place text at the center angle of the segment
+            const textAngle = startAngle + segmentAngle / 2;
+            const textX = centerX + textRadius * Math.cos(((textAngle - 90) * Math.PI) / 180);
+            const textY = centerY + textRadius * Math.sin(((textAngle - 90) * Math.PI) / 180);
             
-            svg += `
-                <text x="${textX}" y="${textY}" 
-                      fill="var(--text-primary)" 
-                      font-size="18" 
-                      font-weight="bold"
-                      text-anchor="middle" 
-                      dominant-baseline="middle"
-                      style="pointer-events: none; user-select: none;">
-                    ${seg.label}
-                </text>
-            `;
+            // Only add text if the segment is large enough
+            if (segmentAngle > 10) {
+                svg += `
+                    <text x="${textX}" y="${textY}" 
+                          fill="var(--text-primary)" 
+                          font-size="18" 
+                          font-weight="bold"
+                          text-anchor="middle" 
+                          dominant-baseline="middle"
+                          style="pointer-events: none; user-select: none;">
+                        ${seg.label}
+                    </text>
+                `;
+            }
             
             currentAngle = endAngle;
         });
