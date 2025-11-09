@@ -693,47 +693,43 @@ input::placeholder {
 }
 
 /* ====================================
-   UTILITIES
+   LUCKY WHEEL SPECIFIC STYLES
    ==================================== */
-.hidden {
-    display: none !important;
-}
-
-.fade-in {
-    animation: fadeIn var(--transition-medium);
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.text-muted {
-    color: var(--text-muted);
-}
-
-.text-center {
-    text-align: center;
-}
-
-.mt-4 { margin-top: 32px; }
-.mb-4 { margin-bottom: 32px; }
-
-/* ====================================
-   LOADING SPINNER
-   ==================================== */
-.spinner {
-    width: 40px;
-    height: 40px;
+.wheel-wrapper {
+    position: relative;
     margin: 40px auto;
-    border: 3px solid var(--border-subtle);
-    border-top-color: var(--text-primary);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.wheel-pointer {
+    position: relative;
+    width: 0;
+    height: 0;
+    border-left: 18px solid transparent;
+    border-right: 18px solid transparent;
+    border-top: 35px solid var(--text-primary);
+    z-index: 10;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+    margin-bottom: -5px;
+}
+
+.wheel-container-inner {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 1;
+}
+
+.wheel-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(0deg);
+    transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+    filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5));
 }
 
 /* ====================================
@@ -787,6 +783,50 @@ input::placeholder {
     color: var(--text-primary);
     font-weight: 600;
     cursor: pointer;
+}
+
+/* ====================================
+   UTILITIES
+   ==================================== */
+.hidden {
+    display: none !important;
+}
+
+.fade-in {
+    animation: fadeIn var(--transition-medium);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-4 { margin-top: 32px; }
+.mb-4 { margin-bottom: 32px; }
+
+/* ====================================
+   LOADING SPINNER
+   ==================================== */
+.spinner {
+    width: 40px;
+    height: 40px;
+    margin: 40px auto;
+    border: 3px solid var(--border-subtle);
+    border-top-color: var(--text-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 /* ====================================
@@ -845,6 +885,20 @@ input::placeholder {
     .multiplier-bar {
         max-width: 50px;
     }
+    
+    .wheel-wrapper {
+        max-width: 280px;
+    }
+    
+    .wheel-container-inner {
+        max-width: 280px;
+    }
+    
+    .wheel-pointer {
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-top: 30px solid var(--text-primary);
+    }
 }
 
 @media (max-width: 480px) {
@@ -855,5 +909,14 @@ input::placeholder {
     
     .info-value {
         font-size: 20px;
+    }
+    
+    .wheel-wrapper {
+        max-width: 260px;
+        margin: 30px auto;
+    }
+    
+    .wheel-container-inner {
+        max-width: 260px;
     }
 }

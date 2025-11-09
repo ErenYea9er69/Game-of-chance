@@ -55,12 +55,12 @@ window.Game4 = {
         wagerInput.disabled = true;
         
         const segments = [
-            { multiplier: 0, weight: 30, color: 'var(--wheel-color-0x)' },
-            { multiplier: 0.5, weight: 25, color: 'var(--wheel-color-0_5x)' },
-            { multiplier: 1, weight: 20, color: 'var(--wheel-color-1x)' },
-            { multiplier: 2, weight: 15, color: 'var(--wheel-color-2x)' },
-            { multiplier: 5, weight: 8, color: 'var(--wheel-color-5x)' },
-            { multiplier: 10, weight: 2, color: 'var(--wheel-color-10x)' }
+            { multiplier: 0, weight: 30, color: 'var(--wheel-color-0x)', label: '0x' },
+            { multiplier: 0.5, weight: 25, color: 'var(--wheel-color-0_5x)', label: '0.5x' },
+            { multiplier: 1, weight: 20, color: 'var(--wheel-color-1x)', label: '1x' },
+            { multiplier: 2, weight: 15, color: 'var(--wheel-color-2x)', label: '2x' },
+            { multiplier: 5, weight: 8, color: 'var(--wheel-color-5x)', label: '5x' },
+            { multiplier: 10, weight: 2, color: 'var(--wheel-color-10x)', label: '10x' }
         ];
         
         const totalWeight = segments.reduce((sum, seg) => sum + seg.weight, 0);
@@ -77,11 +77,13 @@ window.Game4 = {
         
         const wheelContainer = document.getElementById('wheelContainer');
         wheelContainer.innerHTML = `
-            <div style="position: relative; margin: 40px auto; width: 280px; height: 280px;">
-                <div id="wheelPointer" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid var(--text-primary); z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></div>
-                <svg id="wheelSVG" width="280" height="280" style="transform: rotate(0deg); transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);">
-                    ${this.createWheelSegments(segments)}
-                </svg>
+            <div class="wheel-wrapper">
+                <div class="wheel-pointer"></div>
+                <div class="wheel-container-inner">
+                    <svg id="wheelSVG" viewBox="0 0 300 300" class="wheel-svg">
+                        ${this.createWheelSegments(segments)}
+                    </svg>
+                </div>
             </div>
         `;
         
@@ -103,35 +105,57 @@ window.Game4 = {
     createWheelSegments: function(segments) {
         const total = segments.length;
         const anglePerSegment = 360 / total;
-        let currentAngle = 0;
+        const centerX = 150;
+        const centerY = 150;
+        const radius = 140;
+        const textRadius = 95;
+        
+        let currentAngle = -90;
         let svg = '';
         
         segments.forEach((seg, i) => {
-            const x1 = 140 + 120 * Math.cos((currentAngle * Math.PI) / 180);
-            const y1 = 140 + 120 * Math.sin((currentAngle * Math.PI) / 180);
-            const nextAngle = currentAngle + anglePerSegment;
-            const x2 = 140 + 120 * Math.cos((nextAngle * Math.PI) / 180);
-            const y2 = 140 + 120 * Math.sin((nextAngle * Math.PI) / 180);
+            const startAngle = currentAngle;
+            const endAngle = currentAngle + anglePerSegment;
+            
+            const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
+            const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
+            const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
+            const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
             
             const largeArc = anglePerSegment > 180 ? 1 : 0;
             
             svg += `
-                <path d="M 140 140 L ${x1} ${y1} A 120 120 0 ${largeArc} 1 ${x2} ${y2} Z" 
+                <path d="M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z" 
                       fill="${seg.color}" 
                       stroke="var(--border-medium)" 
                       stroke-width="2"/>
-                <text x="140" y="140" 
+            `;
+            
+            const textAngle = startAngle + anglePerSegment / 2;
+            const textX = centerX + textRadius * Math.cos((textAngle * Math.PI) / 180);
+            const textY = centerY + textRadius * Math.sin((textAngle * Math.PI) / 180);
+            
+            svg += `
+                <text x="${textX}" y="${textY}" 
                       fill="var(--text-primary)" 
-                      font-size="16" 
+                      font-size="18" 
                       font-weight="bold"
                       text-anchor="middle" 
-                      transform="rotate(${currentAngle + anglePerSegment / 2} 140 140) translate(0 -75)">
-                    ${seg.multiplier}x
+                      dominant-baseline="middle"
+                      style="pointer-events: none; user-select: none;">
+                    ${seg.label}
                 </text>
             `;
             
-            currentAngle = nextAngle;
+            currentAngle = endAngle;
         });
+        
+        svg += `
+            <circle cx="${centerX}" cy="${centerY}" r="25" 
+                    fill="var(--bg-secondary)" 
+                    stroke="var(--border-accent)" 
+                    stroke-width="2"/>
+        `;
         
         return svg;
     },
