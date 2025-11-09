@@ -79,15 +79,17 @@ window.Game4 = {
             const spins = 5 + Math.random() * 3;
             const segmentAngle = 360 / segments.length;
             const targetIndex = segments.indexOf(selectedSegment);
-            // The wheel starts with first segment at top (pointer at 0 degrees = top)
-            // We need to rotate so the selected segment's center aligns with the pointer
-            // Since segments are drawn starting at -90-(anglePerSegment/2), 
-            // the first segment center is at 0 degrees (top)
-            // To put segment N at the top, we rotate by -N * segmentAngle degrees
-            const baseRotation = 360 * spins;
-            const segmentRotation = targetIndex * segmentAngle;
-            const targetAngle = baseRotation - segmentRotation;
-            wheelSVG.style.transform = `rotate(${targetAngle}deg)`;
+            
+            // Calculate the exact angle needed to position the selected segment at the pointer
+            // The pointer is at -90 degrees (top), so we need to rotate the segment's center to -90
+            // Each segment's center is at: (index * segmentAngle) + (segmentAngle / 2)
+            const segmentCenterAngle = (targetIndex * segmentAngle) + (segmentAngle / 2);
+            
+            // We want the segment center to land at -90 degrees (pointer position)
+            // So we calculate how much to rotate to get there
+            const targetRotation = 360 * spins + (270 - segmentCenterAngle);
+            
+            wheelSVG.style.transform = `rotate(${targetRotation}deg)`;
             setTimeout(() => {
                 this.showWheelResult(selectedSegment);
             }, 4000);
@@ -100,9 +102,9 @@ window.Game4 = {
         const centerY = 150;
         const radius = 140;
         const textRadius = 95;
-        // Start drawing so that the first segment's center is at the top (0 degrees)
-        // This means starting at -anglePerSegment/2
-        let currentAngle = -(anglePerSegment / 2);
+        
+        // Start drawing from -90 degrees (top) so pointer aligns correctly
+        let currentAngle = -90;
         let svg = '';
         segments.forEach((seg, i) => {
             const startAngle = currentAngle;
