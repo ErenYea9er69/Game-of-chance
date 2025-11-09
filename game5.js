@@ -69,6 +69,28 @@ window.Game5 = {
         const potentialWin = Math.floor(GameSystem.highLowState.wager * currentMultiplier);
         
         const gameDiv = document.getElementById('highLowGame');
+        
+        let gridHTML = '<div class="highlow-progress">';
+        
+        multipliers.forEach((mult, i) => {
+            const isReached = i < GameSystem.highLowState.streak;
+            const isCurrent = i === GameSystem.highLowState.streak;
+            const canClick = isCurrent && GameSystem.highLowState.streak > 0;
+            
+            gridHTML += `
+                <div class="multiplier-bar">
+                    <button class="multiplier-button ${isReached ? 'reached' : ''} ${isCurrent ? 'current' : ''}" 
+                            ${!canClick ? 'disabled' : ''}
+                            onclick="Game5.cashOut()"
+                            title="${canClick ? 'Click to cash out at this multiplier' : 'Reach this streak level to enable cash out'}">
+                        ${mult}x
+                    </button>
+                </div>
+            `;
+        });
+        
+        gridHTML += '</div>';
+        
         gameDiv.innerHTML = `
             <div style="margin-top: 32px;">
                 <div style="display: flex; justify-content: space-around; align-items: center; margin-bottom: 24px; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
@@ -77,13 +99,7 @@ window.Game5 = {
                     <div>Potential Win: <strong style="color: var(--text-primary); font-size: 16px;">${potentialWin}</strong></div>
                 </div>
                 
-                <div class="highlow-progress" style="display: flex; gap: 8px; margin-bottom: 32px; justify-content: center;">
-                    ${multipliers.map((mult, i) => `
-                        <div style="flex: 1; max-width: 60px; text-align: center;">
-                            <div style="height: 40px; background: ${i < GameSystem.highLowState.streak ? 'var(--accent-win)' : i === GameSystem.highLowState.streak ? 'var(--border-accent)' : 'var(--bg-secondary)'}; border: 1px solid var(--border-subtle); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; transition: all 0.3s;">${mult}x</div>
-                        </div>
-                    `).join('')}
-                </div>
+                ${gridHTML}
                 
                 <p class="game-description text-center">Current Card:</p>
                 <div class="cards-display">

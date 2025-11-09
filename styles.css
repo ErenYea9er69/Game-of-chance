@@ -26,6 +26,19 @@
     --accent-lose: #4a2d2d;
     --accent-highlight: rgba(255, 255, 255, 0.08);
     
+    /* Wheel colors */
+    --wheel-color-0x: var(--accent-lose);
+    --wheel-color-0_5x: var(--bg-secondary);
+    --wheel-color-1x: var(--bg-tertiary);
+    --wheel-color-2x: #2a3a2a;
+    --wheel-color-5x: #3a3a2a;
+    --wheel-color-10x: var(--accent-win);
+    
+    /* Multiplier colors */
+    --multiplier-reached: var(--accent-win);
+    --multiplier-current: var(--border-accent);
+    --multiplier-locked: var(--bg-secondary);
+    
     /* Shadows */
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
@@ -733,6 +746,49 @@ input::placeholder {
     justify-content: center;
 }
 
+.multiplier-bar {
+    flex: 1;
+    max-width: 60px;
+    text-align: center;
+}
+
+.multiplier-button {
+    width: 100%;
+    height: 40px;
+    background: var(--multiplier-locked);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    padding: 0;
+    color: var(--text-muted);
+    font-family: inherit;
+}
+
+.multiplier-button:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.multiplier-button.reached {
+    background: var(--multiplier-reached);
+    border-color: rgba(100, 255, 150, 0.3);
+    color: var(--text-primary);
+}
+
+.multiplier-button.current {
+    background: var(--multiplier-current);
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+    font-weight: 600;
+    cursor: pointer;
+}
+
 /* ====================================
    RESPONSIVE DESIGN
    ==================================== */
@@ -784,6 +840,10 @@ input::placeholder {
     
     .highscore-display .score {
         font-size: 48px;
+    }
+    
+    .multiplier-bar {
+        max-width: 50px;
     }
 }
 

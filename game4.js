@@ -55,12 +55,12 @@ window.Game4 = {
         wagerInput.disabled = true;
         
         const segments = [
-            { multiplier: 0, weight: 30, color: 'var(--accent-lose)' },
-            { multiplier: 0.5, weight: 25, color: '#3a2a2a' },
-            { multiplier: 1, weight: 20, color: '#2a2a3a' },
-            { multiplier: 2, weight: 15, color: '#2a3a2a' },
-            { multiplier: 5, weight: 8, color: '#3a3a2a' },
-            { multiplier: 10, weight: 2, color: 'var(--accent-win)' }
+            { multiplier: 0, weight: 30, color: 'var(--wheel-color-0x)' },
+            { multiplier: 0.5, weight: 25, color: 'var(--wheel-color-0_5x)' },
+            { multiplier: 1, weight: 20, color: 'var(--wheel-color-1x)' },
+            { multiplier: 2, weight: 15, color: 'var(--wheel-color-2x)' },
+            { multiplier: 5, weight: 8, color: 'var(--wheel-color-5x)' },
+            { multiplier: 10, weight: 2, color: 'var(--wheel-color-10x)' }
         ];
         
         const totalWeight = segments.reduce((sum, seg) => sum + seg.weight, 0);
