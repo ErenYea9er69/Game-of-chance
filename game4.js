@@ -1,4 +1,4 @@
-// game4.js - Lucky Wheel Game
+// game4.js - Lucky Wheel Game (FIXED)
 /* ====================================
    GAME 4: LUCKY WHEEL
    ==================================== */
@@ -99,7 +99,7 @@ window.Game4 = {
         const textRadius = 95;
 
         let svg = '';
-        let currentAngle = -90; // Start from top (-90 degrees)
+        let currentAngle = 0; // Start from right side (0 degrees)
 
         segments.forEach((seg, index) => {
             const startAngle = currentAngle;
@@ -137,7 +137,7 @@ window.Game4 = {
                       font-weight="bold"
                       text-anchor="middle" 
                       dominant-baseline="middle"
-                      transform="rotate(${textAngle}, ${textX}, ${textY})">
+                      transform="rotate(${textAngle + 90}, ${textX}, ${textY})">
                     ${seg.label}
                 </text>
             `;
@@ -161,14 +161,18 @@ window.Game4 = {
         const targetIndex = segments.indexOf(selectedSegment);
         const segmentAngle = 360 / segments.length;
         
-        // Calculate the exact rotation needed to land on the selected segment
-        // The pointer is at -90 degrees (top), so we want the selected segment's center to align with -90
-        const segmentCenterAngle = (targetIndex * segmentAngle) + (segmentAngle / 2);
+        // The pointer is at the top (270 degrees in standard coords, or -90 degrees)
+        // Calculate which angle should be at the top to point at the selected segment
+        // Segments start at 0 degrees (right side) and go clockwise
         
-        // We need to rotate so that the segment center lands at -90 degrees
-        // Full spins + adjustment to land correctly
+        // The center of the target segment (in the original coordinate system)
+        const segmentCenterAngle = targetIndex * segmentAngle + segmentAngle / 2;
+        
+        // We want this segment center to be at 270 degrees (top, where pointer is)
+        // So we need to rotate: 270 - segmentCenterAngle
+        // But we add multiple full rotations for the spin effect
         const fullSpins = 5;
-        const targetRotation = (fullSpins * 360) + (360 - segmentCenterAngle) + 90;
+        const targetRotation = fullSpins * 360 + (270 - segmentCenterAngle);
         
         wheelSVG.style.transform = `rotate(${targetRotation}deg)`;
         
