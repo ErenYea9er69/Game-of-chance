@@ -56,22 +56,22 @@ window.Game4 = {
         
         const segments = [
             { multiplier: 0, weight: 30, color: 'var(--wheel-color-0x)', label: '0x' },
-            { multiplier: 10, weight: 2, color: 'var(--wheel-color-10x)', label: '10x' },
             { multiplier: 0.5, weight: 25, color: 'var(--wheel-color-0_5x)', label: '0.5x' },
-            { multiplier: 5, weight: 8, color: 'var(--wheel-color-5x)', label: '5x' },
             { multiplier: 1, weight: 20, color: 'var(--wheel-color-1x)', label: '1x' },
-            { multiplier: 2, weight: 15, color: 'var(--wheel-color-2x)', label: '2x' }
+            { multiplier: 2, weight: 15, color: 'var(--wheel-color-2x)', label: '2x' },
+            { multiplier: 5, weight: 8, color: 'var(--wheel-color-5x)', label: '5x' },
+            { multiplier: 10, weight: 2, color: 'var(--wheel-color-10x)', label: '10x' }
         ];
         
         const totalWeight = segments.reduce((sum, seg) => sum + seg.weight, 0);
         
         // 1. Determine the winning segment
-        let selectedSegment;
-        let currentWeight = 0;
-        const random = Math.random() * totalWeight;
+        let random = Math.random() * totalWeight;
+        let selectedSegment = segments[0];
+        
         for (let seg of segments) {
-            currentWeight += seg.weight;
-            if (random < currentWeight) {
+            random -= seg.weight;
+            if (random <= 0) {
                 selectedSegment = seg;
                 break;
             }
@@ -90,8 +90,7 @@ window.Game4 = {
             </div>
         `;
         
-        // 3. Calculate rotation angle
-        // We need to find the middle angle of the winning segment
+        // 3. Calculate rotation angle with precision offset to avoid boundary issues
         let currentAngle = 0;
         let targetMiddleAngle = 0;
 
@@ -102,20 +101,20 @@ window.Game4 = {
                 targetMiddleAngle = currentAngle + (segmentAngle / 2);
                 break;
             }
-            // Add this segment's angle to move to the next
             currentAngle += segmentAngle;
         }
 
+        // Add micro-adjustment to ensure landing squarely in segment center
+        const angleAdjustment = 0.5; // 0.5 degree offset to avoid landing on boundaries
+        
         // 4. Spin the wheel
         setTimeout(() => {
             const wheelSVG = document.getElementById('wheelSVG');
             const spins = 5 + Math.random() * 3; // Full spins
             const baseRotation = 360 * spins;
             
-            // We want the wheel to land at the targetMiddleAngle.
-            // The pointer is at 0 degrees (top).
-            // A rotation of -targetMiddleAngle will put that segment's center at the top.
-            const targetAngle = baseRotation - targetMiddleAngle;
+            // Calculate final rotation: full spins plus offset to winning segment center
+            const targetAngle = baseRotation - targetMiddleAngle + angleAdjustment;
             
             wheelSVG.style.transform = `rotate(${targetAngle}deg)`;
             
