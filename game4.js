@@ -92,7 +92,12 @@ window.Game4 = {
             const spins = 5 + Math.random() * 3;
             const segmentAngle = 360 / segments.length;
             const targetIndex = segments.indexOf(selectedSegment);
-            const targetAngle = 360 * spins + (targetIndex * segmentAngle) + (segmentAngle / 2);
+            
+            // Calculate the target angle - we need to align the CENTER of the segment with the pointer at top
+            // The pointer is at 0 degrees (top), so we need to rotate so the target segment's center points up
+            // Since we start at -90 degrees, we need to account for that offset
+            const segmentCenterOffset = segmentAngle / 2;
+            const targetAngle = 360 * spins - (targetIndex * segmentAngle + segmentCenterOffset);
             
             wheelSVG.style.transform = `rotate(${targetAngle}deg)`;
             
@@ -110,7 +115,8 @@ window.Game4 = {
         const radius = 140;
         const textRadius = 95;
         
-        let currentAngle = -90;
+        // Start from -90 degrees so first segment center is at top (0 degrees)
+        let currentAngle = -90 - (anglePerSegment / 2);
         let svg = '';
         
         segments.forEach((seg, i) => {
