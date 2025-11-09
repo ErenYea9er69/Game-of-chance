@@ -264,6 +264,20 @@ body::before {
 }
 
 /* ====================================
+   MENU HEADER WITH DICE ICON
+   ==================================== */
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.menu-header h2 {
+    margin-bottom: 0;
+}
+
+/* ====================================
    RANDOM DICE ICON
    ==================================== */
 .random-dice-icon {
@@ -279,22 +293,23 @@ body::before {
     border-radius: 8px;
     cursor: pointer;
     transition: all var(--transition-medium);
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    position: relative;
     margin: 0;
 }
 
 .random-dice-icon:hover {
     background: var(--accent-highlight);
     border-color: var(--border-accent);
-    transform: translateY(-50%) scale(1.1);
+    transform: scale(1.1);
     box-shadow: var(--shadow-md), 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 .random-dice-icon::before {
     display: none;
+}
+
+.random-dice-icon:active {
+    transform: scale(1.05);
 }
 
 .random-dice-tooltip {
