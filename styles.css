@@ -697,7 +697,7 @@ input::placeholder {
    ==================================== */
 .wheel-wrapper {
     position: relative;
-    margin: 60px auto 40px;
+    margin: 40px auto;
     width: 100%;
     max-width: 320px;
     display: flex;
@@ -706,10 +706,7 @@ input::placeholder {
 }
 
 .wheel-pointer {
-    position: absolute;
-    top: -40px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: relative;
     width: 0;
     height: 0;
     border-left: 18px solid transparent;
@@ -717,6 +714,7 @@ input::placeholder {
     border-top: 35px solid var(--text-primary);
     z-index: 10;
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+    margin-bottom: -5px;
 }
 
 .wheel-container-inner {
@@ -732,7 +730,6 @@ input::placeholder {
     transform: rotate(0deg);
     transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
     filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5));
-    transform-origin: center center;
 }
 
 /* ====================================
@@ -891,7 +888,6 @@ input::placeholder {
     
     .wheel-wrapper {
         max-width: 280px;
-        margin: 50px auto 30px;
     }
     
     .wheel-container-inner {
@@ -899,7 +895,6 @@ input::placeholder {
     }
     
     .wheel-pointer {
-        top: -32px;
         border-left: 15px solid transparent;
         border-right: 15px solid transparent;
         border-top: 30px solid var(--text-primary);
@@ -918,7 +913,7 @@ input::placeholder {
     
     .wheel-wrapper {
         max-width: 260px;
-        margin: 40px auto 30px;
+        margin: 30px auto;
     }
     
     .wheel-container-inner {
