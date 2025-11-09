@@ -91,33 +91,34 @@ window.Game4 = {
         `;
         
         // 3. Calculate rotation angle
-        // We need to find the middle angle of the winning segment
+        // Find the start and middle angle of the winning segment
         let currentAngle = 0;
         let targetMiddleAngle = 0;
 
         for (const seg of segments) {
             const segmentAngle = (seg.weight / totalWeight) * 360;
             if (seg === selectedSegment) {
-                // Found the segment, its middle angle is its start + half its size
+                // The middle of this segment
                 targetMiddleAngle = currentAngle + (segmentAngle / 2);
                 break;
             }
-            // Add this segment's angle to move to the next
             currentAngle += segmentAngle;
         }
 
         // 4. Spin the wheel
         setTimeout(() => {
             const wheelSVG = document.getElementById('wheelSVG');
-            const spins = 5 + Math.random() * 3; // Full spins
+            const spins = 5 + Math.random() * 3; // Random full spins (5-8 rotations)
             const baseRotation = 360 * spins;
             
-            // We want the wheel to land at the targetMiddleAngle.
-            // The pointer is at 0 degrees (top).
-            // A rotation of -targetMiddleAngle will put that segment's center at the top.
-            const targetAngle = baseRotation - targetMiddleAngle;
+            // The pointer is at the top (0 degrees / 12 o'clock position)
+            // To align the segment's middle with the pointer at top, we need to rotate
+            // the wheel so that the segment's middle angle ends up at 0 degrees.
+            // Since we're rotating clockwise, we calculate: baseRotation + (360 - targetMiddleAngle)
+            // This ensures the segment center lands at the top pointer position
+            const finalRotation = baseRotation + (360 - targetMiddleAngle);
             
-            wheelSVG.style.transform = `rotate(${targetAngle}deg)`;
+            wheelSVG.style.transform = `rotate(${finalRotation}deg)`;
             
             setTimeout(() => {
                 this.showWheelResult(selectedSegment);
@@ -139,17 +140,18 @@ window.Game4 = {
             const startAngle = currentAngle;
             const endAngle = currentAngle + segmentAngle;
             
-            // Convert polar coordinates (angles) to Cartesian (x, y)
-            // Note: SVG angles start from 3 o'clock. We subtract 90deg to start from 12 o'clock.
+            // Convert polar coordinates to Cartesian
+            // SVG coordinate system: 0° is at 3 o'clock, increases clockwise
+            // We want to start at 12 o'clock (top), so we subtract 90°
             const x1 = centerX + radius * Math.cos(((startAngle - 90) * Math.PI) / 180);
             const y1 = centerY + radius * Math.sin(((startAngle - 90) * Math.PI) / 180);
             const x2 = centerX + radius * Math.cos(((endAngle - 90) * Math.PI) / 180);
             const y2 = centerY + radius * Math.sin(((endAngle - 90) * Math.PI) / 180);
             
-            // 0 for small arc, 1 for large arc
+            // Large arc flag: 1 if the arc is > 180°, 0 otherwise
             const largeArc = segmentAngle > 180 ? 1 : 0;
             
-            // SVG path data: Move, Line, Arc, Close
+            // Draw the segment path
             svg += `
                 <path d="M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z" 
                       fill="${seg.color}" 
@@ -157,12 +159,12 @@ window.Game4 = {
                       stroke-width="2"/>
             `;
             
-            // Place text at the center angle of the segment
+            // Place text at the center of the segment
             const textAngle = startAngle + segmentAngle / 2;
             const textX = centerX + textRadius * Math.cos(((textAngle - 90) * Math.PI) / 180);
             const textY = centerY + textRadius * Math.sin(((textAngle - 90) * Math.PI) / 180);
             
-            // Only add text if the segment is large enough
+            // Only add text if the segment is large enough to display it
             if (segmentAngle > 10) {
                 svg += `
                     <text x="${textX}" y="${textY}" 
@@ -180,7 +182,7 @@ window.Game4 = {
             currentAngle = endAngle;
         });
         
-        // Center circle
+        // Center circle decoration
         svg += `
             <circle cx="${centerX}" cy="${centerY}" r="25" 
                     fill="var(--bg-secondary)" 
