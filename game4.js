@@ -56,22 +56,22 @@ window.Game4 = {
         
         const segments = [
             { multiplier: 0, weight: 30, color: 'var(--wheel-color-0x)', label: '0x' },
+            { multiplier: 10, weight: 2, color: 'var(--wheel-color-10x)', label: '10x' },
             { multiplier: 0.5, weight: 25, color: 'var(--wheel-color-0_5x)', label: '0.5x' },
-            { multiplier: 1, weight: 20, color: 'var(--wheel-color-1x)', label: '1x' },
-            { multiplier: 2, weight: 15, color: 'var(--wheel-color-2x)', label: '2x' },
             { multiplier: 5, weight: 8, color: 'var(--wheel-color-5x)', label: '5x' },
-            { multiplier: 10, weight: 2, color: 'var(--wheel-color-10x)', label: '10x' }
+            { multiplier: 1, weight: 20, color: 'var(--wheel-color-1x)', label: '1x' },
+            { multiplier: 2, weight: 15, color: 'var(--wheel-color-2x)', label: '2x' }
         ];
         
         const totalWeight = segments.reduce((sum, seg) => sum + seg.weight, 0);
         
         // 1. Determine the winning segment
-        let random = Math.random() * totalWeight;
-        let selectedSegment = segments[0];
-        
+        let selectedSegment;
+        let currentWeight = 0;
+        const random = Math.random() * totalWeight;
         for (let seg of segments) {
-            random -= seg.weight;
-            if (random <= 0) {
+            currentWeight += seg.weight;
+            if (random < currentWeight) {
                 selectedSegment = seg;
                 break;
             }
