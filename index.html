@@ -19,6 +19,8 @@
     <script src="game3.js" defer></script>
     <script src="game4.js" defer></script>
     <script src="game5.js" defer></script>
+    <script src="game6.js" defer></script>
+    <script src="game7.js" defer></script>
 
 </head>
 <body>
@@ -36,12 +38,23 @@
             <section class="glass-card welcome-screen">
                 <div class="welcome-content">
                     <h2>Welcome</h2>
-                    <p>Enter your name to begin your journey at the premium casino experience. You'll start with 100 credits to test your luck across five exciting games.</p>
+                    <p>Enter your name to begin your journey at the premium casino experience. You'll start with 100 credits to test your luck across seven exciting games.</p>
                     <input type="text" id="nameInput" placeholder="Enter your name" autofocus>
                     <button onclick="submitName()" class="btn-primary" style="width: 100%; margin-top: 12px;">Start Playing</button>
                 </div>
             </section>
         </div>
+
+        <!-- Random Game Dice Button -->
+        <section class="random-game-section" id="randomGameSection">
+            <button onclick="startRandomGame()" class="random-game-btn">
+                <span class="dice-icon">🎲</span>
+                <div class="random-game-text">
+                    <div class="random-game-title">FEELING LUCKY?</div>
+                    <div class="random-game-subtitle">Random Game • Quit: -10 credits • Win: 2x prize</div>
+                </div>
+            </button>
+        </section>
 
         <!-- User Information Panel -->
         <section class="user-info" id="userInfo">
@@ -78,17 +91,23 @@
                 <button onclick="startGame('highLow')" class="menu-btn">
                     <span>05</span> — High-Low Cards
                 </button>
+                <button onclick="startGame('overUnder7')" class="menu-btn">
+                    <span>06</span> — Over/Under 7
+                </button>
+                <button onclick="startGame('chuckALuck')" class="menu-btn">
+                    <span>07</span> — Chuck-a-Luck
+                </button>
                 <button onclick="showHighscore()" class="menu-btn">
-                    <span>06</span> — View High Score
+                    <span>08</span> — View High Score
                 </button>
                 <button onclick="changeName()" class="menu-btn">
-                    <span>07</span> — Change Name
+                    <span>09</span> — Change Name
                 </button>
                 <button onclick="resetAccount()" class="menu-btn">
-                    <span>08</span> — Reset Account
+                    <span>10</span> — Reset Account
                 </button>
                 <button onclick="quit()" class="menu-btn">
-                    <span>09</span> — Quit
+                    <span>11</span> — Quit
                 </button>
             </nav>
         </section>
