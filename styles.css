@@ -279,14 +279,17 @@ body::before {
     border-radius: 8px;
     cursor: pointer;
     transition: all var(--transition-medium);
-    position: relative;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
     margin: 0;
 }
 
 .random-dice-icon:hover {
     background: var(--accent-highlight);
     border-color: var(--border-accent);
-    transform: translateY(-2px) scale(1.1);
+    transform: translateY(-50%) scale(1.1);
     box-shadow: var(--shadow-md), 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
