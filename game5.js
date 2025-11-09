@@ -134,7 +134,10 @@ window.Game5 = {
     makeGuess: function(guess) {
         if (!GameSystem.highLowState.playing) return;
         
-        GameSystem.highLowState.nextCard = Math.floor(Math.random() * 13) + 1;
+        // Generate a next card that is different from current
+        do {
+            GameSystem.highLowState.nextCard = Math.floor(Math.random() * 13) + 1;
+        } while (GameSystem.highLowState.nextCard === GameSystem.highLowState.currentCard);
         
         const gameDiv = document.getElementById('highLowGame');
         gameDiv.innerHTML += '<div class="spinner" style="margin: 20px auto;"></div>';
@@ -146,8 +149,6 @@ window.Game5 = {
                 correct = true;
             } else if (guess === 'lower' && GameSystem.highLowState.nextCard < GameSystem.highLowState.currentCard) {
                 correct = true;
-            } else if (GameSystem.highLowState.nextCard === GameSystem.highLowState.currentCard) {
-                correct = false;
             }
             
             if (correct) {
