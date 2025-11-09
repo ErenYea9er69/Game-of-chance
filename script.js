@@ -84,7 +84,31 @@ window.GameSystem = {
     },
     
     savePlayer: function() {
+        // Save player data to localStorage
+        try {
+            localStorage.setItem('gameOfChance_player', JSON.stringify(this.player));
+        } catch (e) {
+            console.error('Error saving player data:', e);
+        }
         this.updateDisplay();
+    },
+    
+    loadPlayer: function() {
+        // Load player data from localStorage
+        try {
+            const savedData = localStorage.getItem('gameOfChance_player');
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                this.player = {
+                    ...this.player,
+                    ...parsedData
+                };
+                return true;
+            }
+        } catch (e) {
+            console.error('Error loading player data:', e);
+        }
+        return false;
     },
     
     backToMenu: function() {
@@ -230,7 +254,7 @@ function quit() {
         <section class="game-container glass-card">
             <h3>Quit Game</h3>
             <p class="game-description">
-                Are you sure you want to quit? Your progress will be lost when you refresh the page.
+                Are you sure you want to quit? Your progress is automatically saved and will be here when you return.
             </p>
             <p class="game-description" style="margin-top: 16px;">
                 Current Balance: <strong>${GameSystem.player.credits} credits</strong><br>
@@ -247,7 +271,7 @@ function quit() {
 }
 
 function confirmQuit() {
-    GameSystem.showNotification('Thanks for playing!', 'info');
+    GameSystem.showNotification('Thanks for playing! Your progress has been saved.', 'info');
     setTimeout(() => {
         GameSystem.backToMenu();
     }, 2000);
@@ -257,10 +281,15 @@ function confirmQuit() {
 // INITIALIZATION
 // ====================================
 function initPlayer() {
-    if (!GameSystem.player.name) {
-        showWelcomeScreen();
-    } else {
+    // Try to load existing player data
+    const hasExistingPlayer = GameSystem.loadPlayer();
+    
+    if (hasExistingPlayer && GameSystem.player.name) {
+        // Player data exists, show main game
         showMainGame();
+    } else {
+        // No player data, show welcome screen
+        showWelcomeScreen();
     }
 }
 
@@ -320,10 +349,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('beforeunload', (e) => {
-    if (GameSystem.currentGame) {
-        e.preventDefault();
-        e.returnValue = '';
-    }
+    // Save player data before leaving
+    GameSystem.savePlayer();
 });
 
 // Make functions available globally for HTML onclick handlers
@@ -334,3 +361,6 @@ window.changeName = changeName;
 window.resetAccount = resetAccount;
 window.quit = quit;
 window.submitName = submitName;
+window.confirmNameChange = confirmNameChange;
+window.confirmReset = confirmReset;
+window.confirmQuit = confirmQuit;
