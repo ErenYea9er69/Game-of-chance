@@ -91,18 +91,17 @@ window.Game4 = {
         `;
         
         // 3. Calculate rotation angle
-        // We need to find the middle angle of the winning segment
+        // Find the middle angle of the winning segment
         let currentAngle = 0;
         let targetMiddleAngle = 0;
 
         for (const seg of segments) {
             const segmentAngle = (seg.weight / totalWeight) * 360;
             if (seg === selectedSegment) {
-                // Found the segment, its middle angle is its start + half its size
+                // The middle angle of this segment
                 targetMiddleAngle = currentAngle + (segmentAngle / 2);
                 break;
             }
-            // Add this segment's angle to move to the next
             currentAngle += segmentAngle;
         }
 
@@ -112,12 +111,14 @@ window.Game4 = {
             const spins = 5 + Math.random() * 3; // Full spins
             const baseRotation = 360 * spins;
             
-            // We want the wheel to land at the targetMiddleAngle.
-            // The pointer is at 0 degrees (top).
-            // A rotation of -targetMiddleAngle will put that segment's center at the top.
-            const targetAngle = baseRotation - targetMiddleAngle;
+            // The pointer is at the top (0 degrees in our coordinate system)
+            // To align the segment's middle with the pointer, we need to rotate
+            // the wheel so that the targetMiddleAngle ends up at 0 degrees.
+            // Since positive rotation is clockwise, we rotate by (360 - targetMiddleAngle)
+            // plus the base rotation for visual effect.
+            const finalAngle = baseRotation + (360 - targetMiddleAngle);
             
-            wheelSVG.style.transform = `rotate(${targetAngle}deg)`;
+            wheelSVG.style.transform = `rotate(${finalAngle}deg)`;
             
             setTimeout(() => {
                 this.showWheelResult(selectedSegment);
