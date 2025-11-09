@@ -30,7 +30,7 @@
             <section class="glass-card welcome-screen">
                 <div class="welcome-content">
                     <h2>Welcome</h2>
-                    <p>Enter your name to begin your journey at the premium casino experience. You'll start with 100 credits to test your luck across three exciting games.</p>
+                    <p>Enter your name to begin your journey at the premium casino experience. You'll start with 100 credits to test your luck across five exciting games.</p>
                     <input type="text" id="nameInput" placeholder="Enter your name" autofocus>
                     <button onclick="submitName()" class="btn-primary" style="width: 100%; margin-top: 12px;">Start Playing</button>
                 </div>
@@ -58,25 +58,31 @@
             <h2>Select Your Game</h2>
             <nav class="menu-options">
                 <button onclick="startGame('pickNumber')" class="menu-btn">
-                    <span>01</span> – Pick a Number
+                    <span>01</span> — Pick a Number
                 </button>
                 <button onclick="startGame('noMatch')" class="menu-btn">
-                    <span>02</span> – No Match Dealer
+                    <span>02</span> — No Match Dealer
                 </button>
                 <button onclick="startGame('findAce')" class="menu-btn">
-                    <span>03</span> – Find the Ace
+                    <span>03</span> — Find the Ace
+                </button>
+                <button onclick="startGame('luckyWheel')" class="menu-btn">
+                    <span>04</span> — Lucky Wheel
+                </button>
+                <button onclick="startGame('highLow')" class="menu-btn">
+                    <span>05</span> — High-Low Cards
                 </button>
                 <button onclick="showHighscore()" class="menu-btn">
-                    <span>04</span> – View High Score
+                    <span>06</span> — View High Score
                 </button>
                 <button onclick="changeName()" class="menu-btn">
-                    <span>05</span> – Change Name
+                    <span>07</span> — Change Name
                 </button>
                 <button onclick="resetAccount()" class="menu-btn">
-                    <span>06</span> – Reset Account
+                    <span>08</span> — Reset Account
                 </button>
                 <button onclick="quit()" class="menu-btn">
-                    <span>07</span> – Quit
+                    <span>09</span> — Quit
                 </button>
             </nav>
         </section>

@@ -724,6 +724,16 @@ input::placeholder {
 }
 
 /* ====================================
+   HIGH-LOW GAME SPECIFIC STYLES
+   ==================================== */
+.highlow-progress {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    justify-content: center;
+}
+
+/* ====================================
    RESPONSIVE DESIGN
    ==================================== */
 @media (max-width: 768px) {
