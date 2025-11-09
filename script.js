@@ -32,6 +32,21 @@ let noMatchGameState = {
     wager: 0
 };
 
+let luckyWheelState = {
+    wager: 0,
+    spinning: false,
+    rotation: 0
+};
+
+let highLowState = {
+    wager: 0,
+    currentCard: 0,
+    nextCard: 0,
+    streak: 0,
+    maxStreak: 5,
+    playing: false
+};
+
 // ====================================
 // INITIALIZATION
 // ====================================
@@ -144,6 +159,12 @@ function startGame(gameType) {
             break;
         case 'findAce':
             findAceGame();
+            break;
+        case 'luckyWheel':
+            luckyWheelGame();
+            break;
+        case 'highLow':
+            highLowGame();
             break;
     }
     
@@ -615,6 +636,392 @@ function revealResult() {
 
     updateHighscore();
     document.getElementById('aceGameArea').innerHTML = resultHTML;
+    savePlayer();
+}
+
+// ====================================
+// GAME 4: LUCKY WHEEL
+// ====================================
+function luckyWheelGame() {
+    if (player.credits === 0) {
+        showNotification('You don\'t have any credits to wager!', 'lose');
+        backToMenu();
+        return;
+    }
+
+    luckyWheelState = { wager: 0, spinning: false, rotation: 0 };
+
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = `
+        <section class="game-container glass-card">
+            <h3>Lucky Wheel</h3>
+            <p class="game-description">
+                Spin the wheel of fortune! The wheel has different prize multipliers:
+                <strong>0x (lose all)</strong>, <strong>0.5x</strong>, <strong>1x (return)</strong>, 
+                <strong>2x</strong>, <strong>5x</strong>, and the rare <strong>10x jackpot</strong>!
+                The bigger the prize, the smaller the section on the wheel.
+            </p>
+            <input type="number" id="wheelWager" min="1" max="${player.credits}" placeholder="Enter your wager" autofocus>
+            <button onclick="spinWheel()" class="btn-primary" style="width: 100%; margin-top: 12px;">
+                Spin the Wheel
+            </button>
+            <button onclick="backToMenu()" class="btn-secondary" style="width: 100%; margin-top: 12px;">
+                Back to Menu
+            </button>
+            <div id="wheelContainer"></div>
+            <div id="wheelResult"></div>
+        </section>
+    `;
+}
+
+function spinWheel() {
+    if (luckyWheelState.spinning) return;
+    
+    const wagerInput = document.getElementById('wheelWager');
+    const wager = parseInt(wagerInput.value);
+    
+    if (!wager || wager < 1 || wager > player.credits) {
+        showNotification('Please enter a valid wager amount', 'lose');
+        wagerInput.focus();
+        return;
+    }
+
+    luckyWheelState.wager = wager;
+    luckyWheelState.spinning = true;
+    player.gamesPlayed++;
+    
+    wagerInput.disabled = true;
+    
+    // Wheel segments: 0x (30%), 0.5x (25%), 1x (20%), 2x (15%), 5x (8%), 10x (2%)
+    const segments = [
+        { multiplier: 0, weight: 30, color: 'var(--accent-lose)' },
+        { multiplier: 0.5, weight: 25, color: '#3a2a2a' },
+        { multiplier: 1, weight: 20, color: '#2a2a3a' },
+        { multiplier: 2, weight: 15, color: '#2a3a2a' },
+        { multiplier: 5, weight: 8, color: '#3a3a2a' },
+        { multiplier: 10, weight: 2, color: 'var(--accent-win)' }
+    ];
+    
+    // Calculate random result
+    const totalWeight = segments.reduce((sum, seg) => sum + seg.weight, 0);
+    let random = Math.random() * totalWeight;
+    let selectedSegment = segments[0];
+    
+    for (let seg of segments) {
+        random -= seg.weight;
+        if (random <= 0) {
+            selectedSegment = seg;
+            break;
+        }
+    }
+    
+    // Create wheel
+    const wheelContainer = document.getElementById('wheelContainer');
+    wheelContainer.innerHTML = `
+        <div style="position: relative; margin: 40px auto; width: 280px; height: 280px;">
+            <div id="wheelPointer" style="position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid var(--text-primary); z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></div>
+            <svg id="wheelSVG" width="280" height="280" style="transform: rotate(0deg); transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);">
+                ${createWheelSegments(segments)}
+            </svg>
+        </div>
+    `;
+    
+    // Spin animation
+    setTimeout(() => {
+        const wheelSVG = document.getElementById('wheelSVG');
+        const spins = 5 + Math.random() * 3;
+        const segmentAngle = 360 / segments.length;
+        const targetIndex = segments.indexOf(selectedSegment);
+        const targetAngle = 360 * spins + (targetIndex * segmentAngle) + (segmentAngle / 2);
+        
+        wheelSVG.style.transform = `rotate(${targetAngle}deg)`;
+        
+        setTimeout(() => {
+            showWheelResult(selectedSegment);
+        }, 4000);
+    }, 100);
+}
+
+function createWheelSegments(segments) {
+    const total = segments.length;
+    const anglePerSegment = 360 / total;
+    let currentAngle = 0;
+    let svg = '';
+    
+    segments.forEach((seg, i) => {
+        const x1 = 140 + 120 * Math.cos((currentAngle * Math.PI) / 180);
+        const y1 = 140 + 120 * Math.sin((currentAngle * Math.PI) / 180);
+        const nextAngle = currentAngle + anglePerSegment;
+        const x2 = 140 + 120 * Math.cos((nextAngle * Math.PI) / 180);
+        const y2 = 140 + 120 * Math.sin((nextAngle * Math.PI) / 180);
+        
+        const largeArc = anglePerSegment > 180 ? 1 : 0;
+        
+        svg += `
+            <path d="M 140 140 L ${x1} ${y1} A 120 120 0 ${largeArc} 1 ${x2} ${y2} Z" 
+                  fill="${seg.color}" 
+                  stroke="var(--border-medium)" 
+                  stroke-width="2"/>
+            <text x="140" y="140" 
+                  fill="var(--text-primary)" 
+                  font-size="16" 
+                  font-weight="bold"
+                  text-anchor="middle" 
+                  transform="rotate(${currentAngle + anglePerSegment / 2} 140 140) translate(0 -75)">
+                ${seg.multiplier}x
+            </text>
+        `;
+        
+        currentAngle = nextAngle;
+    });
+    
+    return svg;
+}
+
+function showWheelResult(segment) {
+    const resultDiv = document.getElementById('wheelResult');
+    const winAmount = Math.floor(luckyWheelState.wager * segment.multiplier);
+    
+    let resultHTML = '<div class="result-message ';
+    
+    if (segment.multiplier === 0) {
+        player.credits -= luckyWheelState.wager;
+        resultHTML += 'lose"><span class="emoji">💸</span>';
+        resultHTML += `The wheel landed on <strong>0x</strong>! You lost ${luckyWheelState.wager} credits.`;
+    } else if (segment.multiplier < 1) {
+        const lostAmount = luckyWheelState.wager - winAmount;
+        player.credits -= lostAmount;
+        resultHTML += 'lose"><span class="emoji">😕</span>';
+        resultHTML += `The wheel landed on <strong>${segment.multiplier}x</strong>! You lost ${lostAmount} credits.`;
+    } else if (segment.multiplier === 1) {
+        resultHTML += 'info"><span class="emoji">😐</span>';
+        resultHTML += `The wheel landed on <strong>1x</strong>! You got your ${luckyWheelState.wager} credits back.`;
+    } else {
+        const profit = winAmount - luckyWheelState.wager;
+        player.credits += profit;
+        player.totalWins++;
+        resultHTML += 'win"><span class="emoji">🎉</span>';
+        resultHTML += `The wheel landed on <strong>${segment.multiplier}x</strong>! You won ${profit} credits!`;
+        showNotification(`🎰 Won ${profit} credits!`, 'win');
+    }
+    
+    resultHTML += '</div>';
+    resultHTML += `
+        <div class="action-buttons mt-4">
+            <button onclick="luckyWheelGame()" class="btn-primary">Spin Again</button>
+            <button onclick="backToMenu()" class="btn-secondary">Back to Menu</button>
+        </div>
+    `;
+    
+    resultDiv.innerHTML = resultHTML;
+    luckyWheelState.spinning = false;
+    updateHighscore();
+    savePlayer();
+}
+
+// ====================================
+// GAME 5: HIGH-LOW CARDS
+// ====================================
+function highLowGame() {
+    if (player.credits === 0) {
+        showNotification('You don\'t have any credits to wager!', 'lose');
+        backToMenu();
+        return;
+    }
+
+    highLowState = {
+        wager: 0,
+        currentCard: 0,
+        nextCard: 0,
+        streak: 0,
+        maxStreak: 5,
+        playing: false
+    };
+
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = `
+        <section class="game-container glass-card">
+            <h3>High-Low Cards</h3>
+            <p class="game-description">
+                Predict whether the next card will be <strong>higher or lower</strong> than the current card.
+                Build a streak to increase your multiplier: <strong>1x → 1.5x → 2x → 3x → 5x → 10x</strong>!
+                But beware: one wrong guess and you <strong>lose everything</strong>. Cash out anytime to keep your winnings.
+                Cards range from <strong>1 (Ace) to 13 (King)</strong>.
+            </p>
+            <input type="number" id="highLowWager" min="1" max="${player.credits}" placeholder="Enter your wager" autofocus>
+            <button onclick="startHighLow()" class="btn-primary" style="width: 100%; margin-top: 12px;">
+                Start Game
+            </button>
+            <button onclick="backToMenu()" class="btn-secondary" style="width: 100%; margin-top: 12px;">
+                Back to Menu
+            </button>
+            <div id="highLowGame"></div>
+        </section>
+    `;
+}
+
+function startHighLow() {
+    const wagerInput = document.getElementById('highLowWager');
+    const wager = parseInt(wagerInput.value);
+    
+    if (!wager || wager < 1 || wager > player.credits) {
+        showNotification('Please enter a valid wager amount', 'lose');
+        wagerInput.focus();
+        return;
+    }
+
+    highLowState.wager = wager;
+    highLowState.currentCard = Math.floor(Math.random() * 13) + 1;
+    highLowState.streak = 0;
+    highLowState.playing = true;
+    player.gamesPlayed++;
+    
+    wagerInput.disabled = true;
+    
+    displayHighLowRound();
+}
+
+function displayHighLowRound() {
+    const multipliers = [1, 1.5, 2, 3, 5, 10];
+    const currentMultiplier = multipliers[highLowState.streak];
+    const potentialWin = Math.floor(highLowState.wager * currentMultiplier);
+    
+    const gameDiv = document.getElementById('highLowGame');
+    gameDiv.innerHTML = `
+        <div style="margin-top: 32px;">
+            <div style="display: flex; justify-content: space-around; align-items: center; margin-bottom: 24px; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
+                <div>Streak: <strong style="color: var(--text-primary); font-size: 16px;">${highLowState.streak}/${highLowState.maxStreak}</strong></div>
+                <div>Multiplier: <strong style="color: var(--text-primary); font-size: 16px;">${currentMultiplier}x</strong></div>
+                <div>Potential Win: <strong style="color: var(--text-primary); font-size: 16px;">${potentialWin}</strong></div>
+            </div>
+            
+            <div class="highlow-progress" style="display: flex; gap: 8px; margin-bottom: 32px; justify-content: center;">
+                ${multipliers.map((mult, i) => `
+                    <div style="flex: 1; max-width: 60px; text-align: center;">
+                        <div style="height: 40px; background: ${i < highLowState.streak ? 'var(--accent-win)' : i === highLowState.streak ? 'var(--border-accent)' : 'var(--bg-secondary)'}; border: 1px solid var(--border-subtle); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; transition: all 0.3s;">${mult}x</div>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <p class="game-description text-center">Current Card:</p>
+            <div class="cards-display">
+                <div class="card revealed" style="font-size: 36px; cursor: default;">${getCardDisplay(highLowState.currentCard)}</div>
+            </div>
+            
+            <p class="game-description text-center" style="margin-top: 24px;">Will the next card be:</p>
+            <div class="action-buttons">
+                <button onclick="makeGuess('higher')" class="btn-primary" ${highLowState.currentCard === 13 ? 'disabled' : ''}>Higher</button>
+                <button onclick="makeGuess('lower')" class="btn-primary" ${highLowState.currentCard === 1 ? 'disabled' : ''}>Lower</button>
+            </div>
+            
+            ${highLowState.streak > 0 ? `
+                <button onclick="cashOut()" class="btn-secondary" style="width: 100%; margin-top: 16px;">
+                    Cash Out (${potentialWin} credits)
+                </button>
+            ` : ''}
+        </div>
+    `;
+}
+
+function getCardDisplay(cardValue) {
+    const cards = ['', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+    return cards[cardValue];
+}
+
+function makeGuess(guess) {
+    if (!highLowState.playing) return;
+    
+    highLowState.nextCard = Math.floor(Math.random() * 13) + 1;
+    
+    const gameDiv = document.getElementById('highLowGame');
+    gameDiv.innerHTML += '<div class="spinner" style="margin: 20px auto;"></div>';
+    
+    setTimeout(() => {
+        let correct = false;
+        
+        if (guess === 'higher' && highLowState.nextCard > highLowState.currentCard) {
+            correct = true;
+        } else if (guess === 'lower' && highLowState.nextCard < highLowState.currentCard) {
+            correct = true;
+        } else if (highLowState.nextCard === highLowState.currentCard) {
+            // Same card = loss
+            correct = false;
+        }
+        
+        if (correct) {
+            highLowState.streak++;
+            showNotification(`Correct! Streak: ${highLowState.streak}`, 'win');
+            
+            if (highLowState.streak >= highLowState.maxStreak) {
+                // Max streak reached - auto cash out
+                setTimeout(() => {
+                    const multipliers = [1, 1.5, 2, 3, 5, 10];
+                    const finalWin = Math.floor(highLowState.wager * multipliers[highLowState.streak]);
+                    player.credits += finalWin;
+                    player.totalWins++;
+                    showHighLowResult(true, true, finalWin);
+                }, 800);
+            } else {
+                highLowState.currentCard = highLowState.nextCard;
+                setTimeout(() => displayHighLowRound(), 800);
+            }
+        } else {
+            player.credits -= highLowState.wager;
+            showHighLowResult(false, false, 0);
+        }
+    }, 1500);
+}
+
+function cashOut() {
+    const multipliers = [1, 1.5, 2, 3, 5, 10];
+    const winAmount = Math.floor(highLowState.wager * multipliers[highLowState.streak]);
+    player.credits += winAmount;
+    player.totalWins++;
+    showHighLowResult(true, false, winAmount);
+}
+
+function showHighLowResult(won, maxStreak, amount) {
+    highLowState.playing = false;
+    
+    const gameDiv = document.getElementById('highLowGame');
+    let resultHTML = '';
+    
+    if (!won) {
+        resultHTML += `
+            <p class="game-description text-center" style="margin-top: 24px;">The next card was:</p>
+            <div class="cards-display">
+                <div class="card revealed" style="font-size: 36px;">${getCardDisplay(highLowState.nextCard)}</div>
+            </div>
+        `;
+    }
+    
+    resultHTML += '<div class="result-message ';
+    
+    if (won) {
+        if (maxStreak) {
+            resultHTML += 'win"><span class="emoji">🏆</span>';
+            resultHTML += `<strong>MAXIMUM STREAK!</strong> You completed all ${highLowState.maxStreak} rounds and won <strong>${amount} credits</strong>!`;
+            showNotification(`🏆 MAX STREAK! Won ${amount} credits!`, 'win');
+        } else {
+            resultHTML += 'win"><span class="emoji">💰</span>';
+            resultHTML += `You cashed out with a ${highLowState.streak}-streak and won <strong>${amount} credits</strong>!`;
+            showNotification(`💰 Cashed out ${amount} credits!`, 'win');
+        }
+    } else {
+        resultHTML += 'lose"><span class="emoji">😢</span>';
+        resultHTML += `Wrong guess! The card was ${getCardDisplay(highLowState.nextCard)}. You lost ${highLowState.wager} credits.`;
+    }
+    
+    resultHTML += '</div>';
+    resultHTML += `
+        <div class="action-buttons mt-4">
+            <button onclick="highLowGame()" class="btn-primary">Play Again</button>
+            <button onclick="backToMenu()" class="btn-secondary">Back to Menu</button>
+        </div>
+    `;
+    
+    gameDiv.innerHTML = resultHTML;
+    updateHighscore();
     savePlayer();
 }
 
