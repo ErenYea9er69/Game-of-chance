@@ -91,20 +91,28 @@ window.Game4 = {
         `;
         
         // 3. Calculate rotation angle
-        // We need to find the middle angle of the winning segment
-        let currentAngle = 0;
-        let targetMiddleAngle = 0;
+        // Find the start and end angles of the winning segment
+        let startAngle = 0;
+        let segmentAngle = 0;
 
         for (const seg of segments) {
-            const segmentAngle = (seg.weight / totalWeight) * 360;
+            const currentSegmentAngle = (seg.weight / totalWeight) * 360;
             if (seg === selectedSegment) {
-                // Found the segment, its middle angle is its start + half its size
-                targetMiddleAngle = currentAngle + (segmentAngle / 2);
+                segmentAngle = currentSegmentAngle;
                 break;
             }
-            // Add this segment's angle to move to the next
-            currentAngle += segmentAngle;
+            // Add this segment's angle to get the start of the next
+            startAngle += currentSegmentAngle;
         }
+
+        // Calculate a random target angle *within* the winning segment,
+        // avoiding the absolute edges to prevent confusion.
+        // We'll aim for the middle 80% of the slice (10% padding on each side).
+        const padding = segmentAngle * 0.10;
+        const randomOffset = Math.random() * (segmentAngle - padding * 2); // Random position in the middle 80%
+        const targetAngleInSegment = padding + randomOffset; 
+        
+        const finalTargetAngle = startAngle + targetAngleInSegment;
 
         // 4. Spin the wheel
         setTimeout(() => {
@@ -112,10 +120,8 @@ window.Game4 = {
             const spins = 5 + Math.random() * 3; // Full spins
             const baseRotation = 360 * spins;
             
-            // We want the wheel to land at the targetMiddleAngle.
-            // The pointer is at 0 degrees (top).
-            // A rotation of -targetMiddleAngle will put that segment's center at the top.
-            const targetAngle = baseRotation - targetMiddleAngle;
+            // A rotation of -finalTargetAngle will put that part of the segment at the top.
+            const targetAngle = baseRotation - finalTargetAngle;
             
             wheelSVG.style.transform = `rotate(${targetAngle}deg)`;
             
