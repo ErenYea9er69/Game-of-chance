@@ -9,7 +9,7 @@ window.Game4 = {
             GameSystem.backToMenu();
             return;
         }
-        GameSystem.luckyWheelState = { wager: 0, spinning: false, rotation: 0 };
+        GameSystem.luckyWheelState = { wager: 0, spinning: false };
         const gameArea = document.getElementById('gameArea');
         gameArea.innerHTML = `
             <section class="game-container glass-card">
@@ -32,6 +32,7 @@ window.Game4 = {
             </section>
         `;
     },
+
     spinWheel: function() {
         if (GameSystem.luckyWheelState.spinning) return;
         const wagerInput = document.getElementById('wheelWager');
@@ -41,10 +42,12 @@ window.Game4 = {
             wagerInput.focus();
             return;
         }
+
         GameSystem.luckyWheelState.wager = wager;
         GameSystem.luckyWheelState.spinning = true;
         GameSystem.player.gamesPlayed++;
         wagerInput.disabled = true;
+
         const segments = [
             { multiplier: 0, weight: 30, color: 'var(--wheel-color-0x)', label: '0x' },
             { multiplier: 0.5, weight: 25, color: 'var(--wheel-color-0_5x)', label: '0.5x' },
@@ -53,9 +56,11 @@ window.Game4 = {
             { multiplier: 5, weight: 8, color: 'var(--wheel-color-5x)', label: '5x' },
             { multiplier: 10, weight: 2, color: 'var(--wheel-color-10x)', label: '10x' }
         ];
+
         const totalWeight = segments.reduce((sum, seg) => sum + seg.weight, 0);
         let random = Math.random() * totalWeight;
         let selectedSegment = segments[0];
+        
         for (let seg of segments) {
             random -= seg.weight;
             if (random <= 0) {
@@ -63,6 +68,11 @@ window.Game4 = {
                 break;
             }
         }
+
+        this.createWheelVisual(segments, selectedSegment);
+    },
+
+    createWheelVisual: function(segments, selectedSegment) {
         const wheelContainer = document.getElementById('wheelContainer');
         wheelContainer.innerHTML = `
             <div class="wheel-wrapper">
@@ -74,56 +84,52 @@ window.Game4 = {
                 </div>
             </div>
         `;
+
         setTimeout(() => {
-            const wheelSVG = document.getElementById('wheelSVG');
-            const spins = 5 + Math.random() * 3;
-            const segmentAngle = 360 / segments.length;
-            const targetIndex = segments.indexOf(selectedSegment);
-            
-            // Calculate the exact angle needed to position the selected segment at the pointer
-            // The pointer is at -90 degrees (top), so we need to rotate the segment's center to -90
-            // Each segment's center is at: (index * segmentAngle) + (segmentAngle / 2)
-            const segmentCenterAngle = (targetIndex * segmentAngle) + (segmentAngle / 2);
-            
-            // We want the segment center to land at -90 degrees (pointer position)
-            // So we calculate how much to rotate to get there
-            const targetRotation = 360 * spins + (270 - segmentCenterAngle);
-            
-            wheelSVG.style.transform = `rotate(${targetRotation}deg)`;
-            setTimeout(() => {
-                this.showWheelResult(selectedSegment);
-            }, 4000);
+            this.animateWheelSpin(segments, selectedSegment);
         }, 100);
     },
+
     createWheelSegments: function(segments) {
-        const total = segments.length;
-        const anglePerSegment = 360 / total;
+        const totalSegments = segments.length;
+        const anglePerSegment = 360 / totalSegments;
         const centerX = 150;
         const centerY = 150;
         const radius = 140;
         const textRadius = 95;
-        
-        // Start drawing from -90 degrees (top) so pointer aligns correctly
-        let currentAngle = -90;
+
         let svg = '';
-        segments.forEach((seg, i) => {
+        let currentAngle = -90; // Start from top (-90 degrees)
+
+        segments.forEach((seg, index) => {
             const startAngle = currentAngle;
             const endAngle = currentAngle + anglePerSegment;
-            const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
-            const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
-            const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
-            const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
+            
+            // Convert angles to radians
+            const startRad = (startAngle * Math.PI) / 180;
+            const endRad = (endAngle * Math.PI) / 180;
+            
+            // Calculate segment path
+            const x1 = centerX + radius * Math.cos(startRad);
+            const y1 = centerY + radius * Math.sin(startRad);
+            const x2 = centerX + radius * Math.cos(endRad);
+            const y2 = centerY + radius * Math.sin(endRad);
+            
             const largeArc = anglePerSegment > 180 ? 1 : 0;
+            
             svg += `
                 <path d="M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z" 
                       fill="${seg.color}" 
                       stroke="var(--border-medium)" 
                       stroke-width="2"/>
             `;
-            // Place text at the center of the segment
+            
+            // Add text in the middle of the segment
             const textAngle = startAngle + anglePerSegment / 2;
-            const textX = centerX + textRadius * Math.cos((textAngle * Math.PI) / 180);
-            const textY = centerY + textRadius * Math.sin((textAngle * Math.PI) / 180);
+            const textRad = (textAngle * Math.PI) / 180;
+            const textX = centerX + textRadius * Math.cos(textRad);
+            const textY = centerY + textRadius * Math.sin(textRad);
+            
             svg += `
                 <text x="${textX}" y="${textY}" 
                       fill="var(--text-primary)" 
@@ -131,45 +137,78 @@ window.Game4 = {
                       font-weight="bold"
                       text-anchor="middle" 
                       dominant-baseline="middle"
-                      style="pointer-events: none; user-select: none;">
+                      transform="rotate(${textAngle}, ${textX}, ${textY})">
                     ${seg.label}
                 </text>
             `;
+            
             currentAngle = endAngle;
         });
-        // Center circle
+
+        // Add center circle
         svg += `
             <circle cx="${centerX}" cy="${centerY}" r="25" 
                     fill="var(--bg-secondary)" 
                     stroke="var(--border-accent)" 
                     stroke-width="2"/>
         `;
+
         return svg;
     },
+
+    animateWheelSpin: function(segments, selectedSegment) {
+        const wheelSVG = document.getElementById('wheelSVG');
+        const targetIndex = segments.indexOf(selectedSegment);
+        const segmentAngle = 360 / segments.length;
+        
+        // Calculate the exact rotation needed to land on the selected segment
+        // The pointer is at -90 degrees (top), so we want the selected segment's center to align with -90
+        const segmentCenterAngle = (targetIndex * segmentAngle) + (segmentAngle / 2);
+        
+        // We need to rotate so that the segment center lands at -90 degrees
+        // Full spins + adjustment to land correctly
+        const fullSpins = 5;
+        const targetRotation = (fullSpins * 360) + (360 - segmentCenterAngle) + 90;
+        
+        wheelSVG.style.transform = `rotate(${targetRotation}deg)`;
+        
+        setTimeout(() => {
+            this.showWheelResult(selectedSegment);
+        }, 4000);
+    },
+
     showWheelResult: function(segment) {
         const resultDiv = document.getElementById('wheelResult');
         const winAmount = Math.floor(GameSystem.luckyWheelState.wager * segment.multiplier);
+        
         let resultHTML = '<div class="result-message ';
+        let notificationMessage = '';
+        
         if (segment.multiplier === 0) {
             GameSystem.player.credits -= GameSystem.luckyWheelState.wager;
             resultHTML += 'lose"><span class="emoji">💸</span>';
             resultHTML += `The wheel landed on <strong>0x</strong>! You lost ${GameSystem.luckyWheelState.wager} credits.`;
+            notificationMessage = `Lost ${GameSystem.luckyWheelState.wager} credits`;
         } else if (segment.multiplier < 1) {
             const lostAmount = GameSystem.luckyWheelState.wager - winAmount;
             GameSystem.player.credits -= lostAmount;
             resultHTML += 'lose"><span class="emoji">😕</span>';
             resultHTML += `The wheel landed on <strong>${segment.multiplier}x</strong>! You lost ${lostAmount} credits.`;
+            notificationMessage = `Lost ${lostAmount} credits`;
         } else if (segment.multiplier === 1) {
             resultHTML += 'info"><span class="emoji">😐</span>';
             resultHTML += `The wheel landed on <strong>1x</strong>! You got your ${GameSystem.luckyWheelState.wager} credits back.`;
+            notificationMessage = 'Got your wager back';
         } else {
             const profit = winAmount - GameSystem.luckyWheelState.wager;
             GameSystem.player.credits += profit;
             GameSystem.player.totalWins++;
             resultHTML += 'win"><span class="emoji">🎉</span>';
             resultHTML += `The wheel landed on <strong>${segment.multiplier}x</strong>! You won ${profit} credits!`;
-            GameSystem.showNotification(`🎰 Won ${profit} credits!`, 'win');
+            notificationMessage = `Won ${profit} credits!`;
+            GameSystem.showNotification(`🎰 ${notificationMessage}`, 'win');
         }
+        
         resultHTML += '</div>';
         resultHTML += `
             <div class="action-buttons mt-4">
@@ -177,6 +216,7 @@ window.Game4 = {
                 <button onclick="GameSystem.backToMenu()" class="btn-secondary">Back to Menu</button>
             </div>
         `;
+        
         resultDiv.innerHTML = resultHTML;
         GameSystem.luckyWheelState.spinning = false;
         GameSystem.updateHighscore();
