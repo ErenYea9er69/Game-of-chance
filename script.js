@@ -333,14 +333,12 @@ function showWelcomeScreen() {
     document.getElementById('welcomeScreen').classList.remove('hidden');
     document.getElementById('userInfo').classList.add('hidden');
     document.getElementById('mainMenu').classList.add('hidden');
-    document.getElementById('randomGameSection').classList.add('hidden');
 }
 
 function showMainGame() {
     document.getElementById('welcomeScreen').classList.add('hidden');
     document.getElementById('userInfo').classList.remove('hidden');
     document.getElementById('mainMenu').classList.remove('hidden');
-    document.getElementById('randomGameSection').classList.remove('hidden');
     GameSystem.updateDisplay();
     GameSystem.animateCredits();
 }
