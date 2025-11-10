@@ -59,7 +59,7 @@ window.GameSystem = {
     updateDisplay: function() {
         document.getElementById('playerName').textContent = this.player.name;
         document.getElementById('playerCredits').textContent = this.player.credits;
-        document.getElementById('playerHighscore').textContent = this.player.highscore;
+        this.loadMiniLeaderboard();
     },
     
     animateCredits: function() {
@@ -144,7 +144,7 @@ window.GameSystem = {
     },
     
     // Leaderboard functions
-async submitToLeaderboard() {
+    async submitToLeaderboard() {
         if (!LEADERBOARD_ENABLED) return;
         
         try {
@@ -195,9 +195,46 @@ async submitToLeaderboard() {
             console.warn('❌ Failed to fetch leaderboard:', error.message);
             return null;
         }
+    },
+
+    // Mini leaderboard functions
+    async loadMiniLeaderboard() {
+        if (!LEADERBOARD_ENABLED) return;
+        
+        const miniLeaderboard = document.getElementById('miniLeaderboard');
+        
+        try {
+            const leaderboard = await this.fetchLeaderboard(3);
+            
+            if (!leaderboard || leaderboard.length === 0) {
+                miniLeaderboard.innerHTML = '<div class="leaderboard-placeholder">No scores yet</div>';
+                return;
+            }
+            
+            let html = '';
+            leaderboard.forEach((player, index) => {
+                const isCurrentPlayer = player.player_name === this.player.name;
+                const rank = index + 1;
+                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+                
+                html += `
+                    <div class="mini-leaderboard-entry">
+                        <div class="mini-rank">${medal}</div>
+                        <div class="mini-name">
+                            ${player.player_name}
+                            ${isCurrentPlayer ? '<span class="mini-you-badge">YOU</span>' : ''}
+                        </div>
+                        <div class="mini-score">${player.highscore.toLocaleString()}</div>
+                    </div>
+                `;
+            });
+            
+            miniLeaderboard.innerHTML = html;
+        } catch (error) {
+            miniLeaderboard.innerHTML = '<div class="leaderboard-placeholder">Loading...</div>';
+        }
     }
 };
-
 
 // ====================================
 // RANDOM GAME FUNCTIONALITY
@@ -247,30 +284,6 @@ function startGame(gameType) {
             window.Game7.chuckALuckGame();
             break;
     }
-    
-    gameArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function showHighscore() {
-    GameSystem.currentGame = 'highscore';
-    document.getElementById('mainMenu').classList.add('hidden');
-    
-    const gameArea = document.getElementById('gameArea');
-    gameArea.innerHTML = `
-        <section class="game-container glass-card">
-            <div class="highscore-display">
-                <h3>High Score</h3>
-                <div class="score">${GameSystem.player.highscore}</div>
-                <p>${GameSystem.player.name} currently holds the high score!</p>
-                <p class="text-muted" style="margin-top: 16px; font-size: 12px;">
-                    Games Played: ${GameSystem.player.gamesPlayed} | Wins: ${GameSystem.player.totalWins}
-                </p>
-            </div>
-            <button onclick="backToMenu()" style="width: 100%; margin-top: 24px;">
-                Back to Menu
-            </button>
-        </section>
-    `;
     
     gameArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -561,7 +574,6 @@ window.addEventListener('beforeunload', (e) => {
 window.startGame = startGame;
 window.startRandomGame = startRandomGame;
 window.backToMenu = () => GameSystem.backToMenu();
-window.showHighscore = showHighscore;
 window.showLeaderboard = showLeaderboard;
 window.changeName = changeName;
 window.resetAccount = resetAccount;

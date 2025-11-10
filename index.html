@@ -55,9 +55,11 @@
                 <div class="info-label">Credits</div>
                 <div class="info-value credits" id="playerCredits">0</div>
             </div>
-            <div class="info-item">
-                <div class="info-label">High Score</div>
-                <div class="info-value credits" id="playerHighscore">0</div>
+            <div class="info-item clickable" onclick="showLeaderboard()">
+                <div class="info-label">🏆 Top Players</div>
+                <div class="leaderboard-mini" id="miniLeaderboard">
+                    <div class="spinner small"></div>
+                </div>
             </div>
         </section>
 
@@ -96,20 +98,14 @@
                 <button onclick="startGame('chuckALuck')" class="menu-btn">
                     <span>07</span> — Chuck-a-Luck
                 </button>
-                <button onclick="showHighscore()" class="menu-btn">
-                    <span>08</span> — View High Score
-                </button>
-                <button onclick="showLeaderboard()" class="menu-btn">
-                    <span>09</span> — 🏆 Leaderboard
-                </button>
                 <button onclick="changeName()" class="menu-btn">
-                    <span>10</span> — Change Name
+                    <span>08</span> — Change Name
                 </button>
                 <button onclick="resetAccount()" class="menu-btn">
-                    <span>11</span> — Reset Account
+                    <span>09</span> — Reset Account
                 </button>
                 <button onclick="quit()" class="menu-btn">
-                    <span>12</span> — Quit
+                    <span>10</span> — Quit
                 </button>
             </nav>
         </section>

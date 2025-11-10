@@ -209,6 +209,17 @@ body::before {
     overflow: hidden;
 }
 
+.info-item.clickable {
+    cursor: pointer;
+}
+
+.info-item.clickable:hover {
+    border-color: var(--border-accent);
+    background: var(--bg-tertiary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
 .info-item::after {
     content: '';
     position: absolute;
@@ -243,6 +254,71 @@ body::before {
 .info-value.credits {
     font-feature-settings: 'tnum';
     font-variant-numeric: tabular-nums;
+}
+
+/* Mini Leaderboard Styles */
+.leaderboard-mini {
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mini-leaderboard-entry {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    padding: 4px 0;
+}
+
+.mini-leaderboard-entry:nth-child(1) {
+    color: gold;
+}
+
+.mini-leaderboard-entry:nth-child(2) {
+    color: silver;
+}
+
+.mini-leaderboard-entry:nth-child(3) {
+    color: #cd7f32; /* bronze */
+}
+
+.mini-rank {
+    width: 16px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 10px;
+}
+
+.mini-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-secondary);
+}
+
+.mini-score {
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+}
+
+.mini-you-badge {
+    background: var(--border-subtle);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 9px;
+    margin-left: 4px;
+    color: var(--text-muted);
+}
+
+.leaderboard-placeholder {
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: center;
+    padding: 8px 0;
 }
 
 /* ====================================
@@ -1242,6 +1318,13 @@ input::placeholder {
     border-top-color: var(--text-primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
+}
+
+.spinner.small {
+    width: 20px;
+    height: 20px;
+    margin: 20px auto;
+    border-width: 2px;
 }
 
 @keyframes spin {
