@@ -3,6 +3,13 @@
    GAME OF CHANCE - CORE SYSTEM
    ==================================== */
 
+// API Configuration - Works both locally and on Vercel
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3000/api' 
+  : '/api';
+
+const LEADERBOARD_ENABLED = true; // Set to false to disable leaderboard
+
 // Global game system object
 window.GameSystem = {
     // Player data
@@ -66,8 +73,14 @@ window.GameSystem = {
     
     updateHighscore: function() {
         if (this.player.credits > this.player.highscore) {
+            const oldHighscore = this.player.highscore;
             this.player.highscore = this.player.credits;
             this.showNotification('🎉 New High Score!');
+            
+            // Submit to leaderboard if enabled
+            if (LEADERBOARD_ENABLED && oldHighscore < this.player.highscore) {
+                this.submitToLeaderboard();
+            }
         }
     },
     
@@ -118,9 +131,7 @@ window.GameSystem = {
     },
     
     backToMenu: function() {
-        // Check if quitting from random game
         if (this.isRandomGame && this.currentGame) {
-            // Apply penalty
             this.player.credits -= this.randomGamePenalty;
             this.showNotification(`-${this.randomGamePenalty} credits for quitting random game`, 'lose');
             this.savePlayer();
@@ -131,6 +142,55 @@ window.GameSystem = {
         this.currentGame = null;
         this.isRandomGame = false;
         document.getElementById('mainMenu').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+    
+    // Leaderboard functions
+    async submitToLeaderboard() {
+        if (!LEADERBOARD_ENABLED) return;
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/submit`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: this.player.name,
+                    highscore: this.player.highscore,
+                    games_played: this.player.gamesPlayed,
+                    total_wins: this.player.totalWins
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log('Leaderboard update successful:', result);
+            return result;
+        } catch (error) {
+            console.warn('Failed to submit to leaderboard:', error);
+            return null;
+        }
+    },
+    
+    async fetchLeaderboard(limit = 10) {
+        if (!LEADERBOARD_ENABLED) return [];
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/leaderboard?limit=${limit}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const leaderboard = await response.json();
+            return leaderboard;
+        } catch (error) {
+            console.warn('Failed to fetch leaderboard:', error);
+            return null;
+        }
     }
 };
 
@@ -210,6 +270,103 @@ function showHighscore() {
     gameArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+async function showLeaderboard() {
+    GameSystem.currentGame = 'leaderboard';
+    document.getElementById('mainMenu').classList.add('hidden');
+    
+    const gameArea = document.getElementById('gameArea');
+    gameArea.innerHTML = `
+        <section class="game-container glass-card">
+            <h3>🏆 Global Leaderboard</h3>
+            <div id="leaderboardContent">
+                <div class="spinner"></div>
+                <p class="text-center text-muted">Loading leaderboard...</p>
+            </div>
+            <button onclick="backToMenu()" style="width: 100%; margin-top: 24px;">
+                Back to Menu
+            </button>
+        </section>
+    `;
+    
+    gameArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Fetch leaderboard data
+    const leaderboard = await GameSystem.fetchLeaderboard(10);
+    
+    const contentDiv = document.getElementById('leaderboardContent');
+    
+    if (!leaderboard) {
+        contentDiv.innerHTML = `
+            <div class="result-message info">
+                <span class="emoji">⚠️</span>
+                <strong>Connection Error</strong><br>
+                Could not connect to leaderboard. Please check your internet connection.
+            </div>
+        `;
+        return;
+    }
+    
+    if (leaderboard.length === 0) {
+        contentDiv.innerHTML = `
+            <p class="text-center text-muted" style="margin-top: 32px;">
+                No scores yet. Be the first to climb the leaderboard!
+            </p>
+        `;
+        return;
+    }
+    
+    // Generate leaderboard HTML
+    let html = '<div class="leaderboard-container">';
+    
+    leaderboard.forEach((player, index) => {
+        const isCurrentPlayer = player.player_name === GameSystem.player.name;
+        const rank = index + 1;
+        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+        
+        html += `
+            <div class="leaderboard-entry ${isCurrentPlayer ? 'current-player' : ''}">
+                <div class="rank">${medal}</div>
+                <div class="player-info">
+                    <div class="player-name">
+                        ${player.player_name}
+                        ${isCurrentPlayer ? '<span class="you-badge">(YOU)</span>' : ''}
+                    </div>
+                    <div class="player-stats">
+                        ${player.highscore.toLocaleString()} credits • ${player.total_wins} wins • ${player.games_played} games
+                    </div>
+                </div>
+                <div class="score">${player.highscore.toLocaleString()}</div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    
+    // Add current player's rank if not in top 10
+    const currentPlayerEntry = leaderboard.find(p => p.player_name === GameSystem.player.name);
+    if (!currentPlayerEntry && GameSystem.player.highscore > 0) {
+        html += `
+            <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-subtle);">
+                <div class="leaderboard-entry current-player">
+                    <div class="rank">?</div>
+                    <div class="player-info">
+                        <div class="player-name">
+                            ${GameSystem.player.name}
+                            <span class="you-badge">(YOU)</span>
+                        </div>
+                        <div class="player-stats">
+                            Not in top 10 • ${GameSystem.player.highscore} credits
+                        </div>
+                    </div>
+                    <div class="score">${GameSystem.player.highscore.toLocaleString()}</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    contentDiv.innerHTML = html;
+}
+
 function changeName() {
     GameSystem.currentGame = 'changeName';
     document.getElementById('mainMenu').classList.add('hidden');
@@ -272,6 +429,11 @@ function resetAccount() {
 }
 
 function confirmReset() {
+    // Submit final score before reset
+    if (LEADERBOARD_ENABLED && GameSystem.player.highscore > 100) {
+        GameSystem.submitToLeaderboard();
+    }
+    
     GameSystem.player.credits = 100;
     GameSystem.player.highscore = 100;
     GameSystem.player.gamesPlayed = 0;
@@ -307,6 +469,11 @@ function quit() {
 }
 
 function confirmQuit() {
+    // Submit score on quit
+    if (LEADERBOARD_ENABLED && GameSystem.player.highscore > 100) {
+        GameSystem.submitToLeaderboard();
+    }
+    
     GameSystem.showNotification('Thanks for playing! Your progress has been saved.', 'info');
     setTimeout(() => {
         GameSystem.backToMenu();
@@ -317,14 +484,11 @@ function confirmQuit() {
 // INITIALIZATION
 // ====================================
 function initPlayer() {
-    // Try to load existing player data
     const hasExistingPlayer = GameSystem.loadPlayer();
     
     if (hasExistingPlayer && GameSystem.player.name) {
-        // Player data exists, show main game
         showMainGame();
     } else {
-        // No player data, show welcome screen
         showWelcomeScreen();
     }
 }
@@ -385,15 +549,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('beforeunload', (e) => {
-    // Save player data before leaving
     GameSystem.savePlayer();
 });
 
-// Make functions available globally for HTML onclick handlers
+// Global function exports
 window.startGame = startGame;
 window.startRandomGame = startRandomGame;
 window.backToMenu = () => GameSystem.backToMenu();
 window.showHighscore = showHighscore;
+window.showLeaderboard = showLeaderboard;
 window.changeName = changeName;
 window.resetAccount = resetAccount;
 window.quit = quit;

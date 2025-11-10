@@ -39,6 +39,11 @@
     --multiplier-current: var(--border-accent);
     --multiplier-locked: var(--bg-secondary);
     
+    /* Leaderboard colors */
+    --leaderboard-gold: rgba(255, 215, 0, 0.15);
+    --leaderboard-silver: rgba(192, 192, 192, 0.15);
+    --leaderboard-bronze: rgba(205, 127, 50, 0.15);
+    
     /* Shadows */
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
@@ -976,6 +981,104 @@ input::placeholder {
 }
 
 /* ====================================
+   LEADERBOARD DISPLAY
+   ==================================== */
+.leaderboard-container {
+    margin-top: 24px;
+}
+
+.leaderboard-entry {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    margin-bottom: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    transition: all var(--transition-fast);
+}
+
+.leaderboard-entry:hover {
+    border-color: var(--border-medium);
+    transform: translateX(4px);
+}
+
+.leaderboard-entry.current-player {
+    border-color: var(--border-accent);
+    background: var(--accent-highlight);
+    box-shadow: var(--shadow-sm);
+}
+
+.leaderboard-entry:nth-child(1) {
+    background: var(--leaderboard-gold);
+    border-color: rgba(255, 215, 0, 0.3);
+}
+
+.leaderboard-entry:nth-child(2) {
+    background: var(--leaderboard-silver);
+    border-color: rgba(192, 192, 192, 0.3);
+}
+
+.leaderboard-entry:nth-child(3) {
+    background: var(--leaderboard-bronze);
+    border-color: rgba(205, 127, 50, 0.3);
+}
+
+.rank {
+    width: 40px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.leaderboard-entry:nth-child(1) .rank {
+    color: rgba(255, 215, 0, 0.8);
+}
+
+.leaderboard-entry:nth-child(2) .rank {
+    color: rgba(192, 192, 192, 0.8);
+}
+
+.leaderboard-entry:nth-child(3) .rank {
+    color: rgba(205, 127, 50, 0.8);
+}
+
+.player-info {
+    flex: 1;
+}
+
+.player-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.you-badge {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--border-subtle);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+}
+
+.player-stats {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+}
+
+.score {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ====================================
    WELCOME SCREEN
    ==================================== */
 .welcome-screen {
@@ -1238,6 +1341,22 @@ input::placeholder {
     
     .chuck-number-btn {
         font-size: 32px;
+    }
+    
+    /* Leaderboard responsive */
+    .leaderboard-entry {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .rank {
+        width: auto;
+        font-size: 16px;
+    }
+    
+    .score {
+        align-self: flex-end;
     }
 }
 
