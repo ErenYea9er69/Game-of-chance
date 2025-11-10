@@ -62,6 +62,9 @@ window.Game5 = {
         GameSystem.highLowState.playing = true;
         GameSystem.player.gamesPlayed++;
         
+        // Subtract wager at the start
+        GameSystem.player.credits -= wager;
+        
         wagerInput.disabled = true;
         
         this.displayHighLowRound();
@@ -160,6 +163,7 @@ window.Game5 = {
                         const multipliers = [1, 1.5, 2, 3, 5, 10];
                         const baseFinalWin = Math.floor(GameSystem.highLowState.wager * multipliers[GameSystem.highLowState.streak]);
                         const finalWin = GameSystem.isRandomGame ? baseFinalWin * 2 : baseFinalWin;
+                        // Add the winnings (wager was already subtracted at start)
                         GameSystem.player.credits += finalWin;
                         GameSystem.player.totalWins++;
                         this.showHighLowResult(true, true, finalWin);
@@ -169,7 +173,7 @@ window.Game5 = {
                     setTimeout(() => this.displayHighLowRound(), 800);
                 }
             } else {
-                GameSystem.player.credits -= GameSystem.highLowState.wager;
+                // Wager was already subtracted at start, no need to subtract again
                 this.showHighLowResult(false, false, 0);
             }
         }, 1500);
@@ -179,6 +183,7 @@ window.Game5 = {
         const multipliers = [1, 1.5, 2, 3, 5, 10];
         const baseWinAmount = Math.floor(GameSystem.highLowState.wager * multipliers[GameSystem.highLowState.streak]);
         const winAmount = GameSystem.isRandomGame ? baseWinAmount * 2 : baseWinAmount;
+        // Add the winnings (wager was already subtracted at start)
         GameSystem.player.credits += winAmount;
         GameSystem.player.totalWins++;
         this.showHighLowResult(true, false, winAmount);

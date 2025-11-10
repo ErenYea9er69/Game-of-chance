@@ -84,6 +84,8 @@ window.Game7 = {
             return;
         }
 
+        // Subtract wager at the start
+        GameSystem.player.credits -= wager;
         GameSystem.chuckALuckState.wager = wager;
         GameSystem.player.gamesPlayed++;
         
@@ -125,7 +127,7 @@ window.Game7 = {
             resultHTML += '<div class="result-message ';
 
             if (matches === 0) {
-                GameSystem.player.credits -= wager;
+                // Wager was already subtracted at start, no need to subtract again
                 resultHTML += 'lose"><span class="emoji">😞</span>';
                 resultHTML += `No matches! You lost ${wager} credits.`;
             } else {
@@ -135,6 +137,7 @@ window.Game7 = {
                 else if (matches === 3) multiplier = 10;
                 
                 const winAmount = wager * multiplier;
+                // Add winnings (wager was already subtracted)
                 GameSystem.player.credits += winAmount;
                 GameSystem.player.totalWins++;
                 resultHTML += 'win"><span class="emoji">🎊</span>';

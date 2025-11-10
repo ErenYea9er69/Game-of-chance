@@ -58,6 +58,8 @@ window.Game6 = {
             return;
         }
 
+        // Subtract wager at the start
+        GameSystem.player.credits -= wager;
         GameSystem.player.gamesPlayed++;
         wagerInput.disabled = true;
         
@@ -104,13 +106,14 @@ window.Game6 = {
 
             if (won) {
                 const winAmount = wager * multiplier;
+                // Add winnings (wager was already subtracted)
                 GameSystem.player.credits += winAmount;
                 GameSystem.player.totalWins++;
                 resultHTML += 'win"><span class="emoji">🎉</span>';
                 resultHTML += `You bet <strong>${betType.toUpperCase()}</strong> and won! You receive <strong>${winAmount} credits</strong> (${multiplier}x your wager)!`;
                 GameSystem.showNotification(`🎲 Won ${winAmount} credits!`, 'win');
             } else {
-                GameSystem.player.credits -= wager;
+                // Wager was already subtracted at start, no need to subtract again
                 resultHTML += 'lose"><span class="emoji">😔</span>';
                 resultHTML += `You bet <strong>${betType.toUpperCase()}</strong> but the total was ${total}. You lost ${wager} credits.`;
             }
