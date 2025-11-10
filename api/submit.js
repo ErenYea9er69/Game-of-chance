@@ -14,6 +14,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Test connection first
+    await sql`SELECT 1`;
+    
     const { name, highscore, games_played, total_wins } = req.body;
 
     if (!name || typeof highscore !== 'number' || typeof games_played !== 'number' || typeof total_wins !== 'number') {
@@ -45,10 +48,11 @@ export default async function handler(req, res) {
       isNewHighscore
     });
   } catch (error) {
-    console.error('Database error:', error.message);
+    console.error('Submit error:', error.message);
     return res.status(500).json({ 
-      error: 'Database connection failed',
-      details: error.message 
+      error: 'Database operation failed',
+      details: error.message,
+      code: error.code || 'UNKNOWN'
     });
   }
 }

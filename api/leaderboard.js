@@ -14,6 +14,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Test connection first
+    await sql`SELECT 1`;
+    
     const limit = Math.min(parseInt(req.query.limit) || 10, 100);
     
     const { rows } = await sql`
@@ -25,10 +28,12 @@ export default async function handler(req, res) {
     
     return res.status(200).json(rows);
   } catch (error) {
-    console.error('Database error:', error.message);
+    console.error('Leaderboard error:', error.message);
+    // Return JSON error, not plain text
     return res.status(500).json({ 
-      error: 'Database connection failed',
-      details: error.message 
+      error: 'Database query failed',
+      details: error.message,
+      code: error.code || 'UNKNOWN'
     });
   }
 }

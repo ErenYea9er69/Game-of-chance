@@ -4,13 +4,12 @@
    ==================================== */
 
 // API Configuration - Works both locally and on Vercel
-const API_BASE_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost:3000/api' 
-  : '/api';
+const API_BASE_URL = window.location.hostname.includes('vercel.app') 
+  ? '/api'
+  : 'http://localhost:3000/api';
 
-const LEADERBOARD_ENABLED = true; // Set to false to disable leaderboard
+const LEADERBOARD_ENABLED = true;
 
-// Global game system object
 window.GameSystem = {
     // Player data
     player: {
@@ -145,7 +144,7 @@ window.GameSystem = {
     },
     
     // Leaderboard functions
-    async submitToLeaderboard() {
+async submitToLeaderboard() {
         if (!LEADERBOARD_ENABLED) return;
         
         try {
@@ -163,37 +162,42 @@ window.GameSystem = {
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const error = await response.json();
+                throw new Error(error.details || `HTTP error! status: ${response.status}`);
             }
             
             const result = await response.json();
-            console.log('Leaderboard update successful:', result);
+            console.log('✅ Leaderboard updated:', result);
             return result;
         } catch (error) {
-            console.warn('Failed to submit to leaderboard:', error);
+            console.warn('❌ Failed to submit to leaderboard:', error.message);
+            // Silent failure - don't show user
             return null;
         }
     },
     
-async fetchLeaderboard(limit = 10) {
-    if (!LEADERBOARD_ENABLED) return [];
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/leaderboard?limit=${limit}`);
+    async fetchLeaderboard(limit = 10) {
+        if (!LEADERBOARD_ENABLED) return [];
         
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.details || `HTTP error! status: ${response.status}`);
+        try {
+            // Add cache-busting parameter
+            const url = `${API_BASE_URL}/leaderboard?limit=${limit}&t=${Date.now()}`;
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.details || `HTTP error! status: ${response.status}`);
+            }
+            
+            const leaderboard = await response.json();
+            return leaderboard;
+        } catch (error) {
+            console.warn('❌ Failed to fetch leaderboard:', error.message);
+            return null;
         }
-        
-        const leaderboard = await response.json();
-        return leaderboard;
-    } catch (error) {
-        console.warn('Failed to fetch leaderboard:', error);
-        return null;
     }
-}
 };
+
 
 // ====================================
 // RANDOM GAME FUNCTIONALITY
