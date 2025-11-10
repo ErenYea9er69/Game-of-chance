@@ -1,6 +1,6 @@
-import { sql } from '@vercel/postgres';
+const { sql } = require('@vercel/postgres');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -14,26 +14,26 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Test connection first
+    // Test connection
     await sql`SELECT 1`;
     
     const limit = Math.min(parseInt(req.query.limit) || 10, 100);
     
-    const { rows } = await sql`
+    const result = await sql`
       SELECT player_name, highscore, games_played, total_wins, last_updated 
       FROM leaderboard 
       ORDER BY highscore DESC 
       LIMIT ${limit}
     `;
     
-    return res.status(200).json(rows);
+    return res.status(200).json(result.rows || []);
   } catch (error) {
     console.error('Leaderboard error:', error.message);
-    // Return JSON error, not plain text
+    
     return res.status(500).json({ 
       error: 'Database query failed',
       details: error.message,
       code: error.code || 'UNKNOWN'
     });
   }
-}
+};

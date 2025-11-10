@@ -1,6 +1,6 @@
-import { sql } from '@vercel/postgres';
+const { sql } = require('@vercel/postgres');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Test connection first
+    // Test connection
     await sql`SELECT 1`;
     
     const { name, highscore, games_played, total_wins } = req.body;
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     }
 
     if (name.length > 100) {
-      return res.status(400).json({ error: 'Name too long' });
+      return res.status(400).json({ error: 'Name too long (max 100 chars)' });
     }
 
     const result = await sql`
@@ -49,10 +49,11 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Submit error:', error.message);
+    
     return res.status(500).json({ 
       error: 'Database operation failed',
       details: error.message,
       code: error.code || 'UNKNOWN'
     });
   }
-}
+};
