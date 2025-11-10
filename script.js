@@ -175,23 +175,24 @@ window.GameSystem = {
         }
     },
     
-    async fetchLeaderboard(limit = 10) {
-        if (!LEADERBOARD_ENABLED) return [];
+async fetchLeaderboard(limit = 10) {
+    if (!LEADERBOARD_ENABLED) return [];
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/leaderboard?limit=${limit}`);
         
-        try {
-            const response = await fetch(`${API_BASE_URL}/leaderboard?limit=${limit}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const leaderboard = await response.json();
-            return leaderboard;
-        } catch (error) {
-            console.warn('Failed to fetch leaderboard:', error);
-            return null;
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.details || `HTTP error! status: ${response.status}`);
         }
+        
+        const leaderboard = await response.json();
+        return leaderboard;
+    } catch (error) {
+        console.warn('Failed to fetch leaderboard:', error);
+        return null;
     }
+}
 };
 
 // ====================================

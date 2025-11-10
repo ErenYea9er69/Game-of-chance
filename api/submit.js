@@ -1,13 +1,10 @@
-// Serverless function: POST /api/submit
 import { sql } from '@vercel/postgres';
 
 export default async function handler(req, res) {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Handle OPTIONS preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -19,7 +16,6 @@ export default async function handler(req, res) {
   try {
     const { name, highscore, games_played, total_wins } = req.body;
 
-    // Validate input
     if (!name || typeof highscore !== 'number' || typeof games_played !== 'number' || typeof total_wins !== 'number') {
       return res.status(400).json({ error: 'Invalid data format' });
     }
@@ -28,7 +24,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Name too long' });
     }
 
-    // Upsert player score
     const result = await sql`
       INSERT INTO leaderboard (player_name, highscore, games_played, total_wins, last_updated)
       VALUES (${name}, ${highscore}, ${games_played}, ${total_wins}, NOW())
@@ -50,7 +45,10 @@ export default async function handler(req, res) {
       isNewHighscore
     });
   } catch (error) {
-    console.error('Database error:', error);
-    return res.status(500).json({ error: 'Failed to submit score' });
+    console.error('Database error:', error.message);
+    return res.status(500).json({ 
+      error: 'Database connection failed',
+      details: error.message 
+    });
   }
 }
