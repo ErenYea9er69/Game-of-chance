@@ -24,7 +24,6 @@ window.GameSystem = {
     // Game states
     currentGame: null,
     isRandomGame: false,
-    randomGamePenalty: 10,
     aceGame: {
         ace: 0,
         pick: -1,
@@ -71,15 +70,15 @@ window.GameSystem = {
     },
     
     updateHighscore: function() {
+        // Update local highscore if current credits exceed it
         if (this.player.credits > this.player.highscore) {
-            const oldHighscore = this.player.highscore;
             this.player.highscore = this.player.credits;
             this.showNotification('🎉 New High Score!');
-            
-            // Submit to leaderboard if enabled
-            if (LEADERBOARD_ENABLED && oldHighscore < this.player.highscore) {
-                this.submitToLeaderboard();
-            }
+        }
+        
+        // Submit current credits to leaderboard (not just highscore)
+        if (LEADERBOARD_ENABLED) {
+            this.submitToLeaderboard();
         }
     },
     
@@ -131,8 +130,10 @@ window.GameSystem = {
     
     backToMenu: function() {
         if (this.isRandomGame && this.currentGame) {
-            this.player.credits -= this.randomGamePenalty;
-            this.showNotification(`-${this.randomGamePenalty} credits for quitting random game`, 'lose');
+            // Deduct 50% of credits for quitting random game
+            const penalty = Math.floor(this.player.credits * 0.5);
+            this.player.credits -= penalty;
+            this.showNotification(`-${penalty} credits for quitting random game`, 'lose');
             this.savePlayer();
         }
         
@@ -155,7 +156,7 @@ window.GameSystem = {
                 },
                 body: JSON.stringify({
                     name: this.player.name,
-                    highscore: this.player.highscore,
+                    highscore: this.player.credits, // Submit current credits instead of highscore
                     games_played: this.player.gamesPlayed,
                     total_wins: this.player.totalWins
                 })
@@ -244,7 +245,7 @@ function startRandomGame() {
     const randomGame = games[Math.floor(Math.random() * games.length)];
     
     GameSystem.isRandomGame = true;
-    GameSystem.showNotification('🎲 Random Game Mode Active! Quit = -10 credits, Win = 2x prize', 'info');
+    GameSystem.showNotification('🎲 Random Game Mode Active! Quit = -50% credits, Win = 2x prize', 'info');
     
     setTimeout(() => {
         startGame(randomGame);

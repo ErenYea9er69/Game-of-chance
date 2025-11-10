@@ -32,7 +32,7 @@ module.exports = async function handler(req, res) {
       VALUES (${name}, ${highscore}, ${games_played}, ${total_wins}, NOW())
       ON CONFLICT (player_name) 
       DO UPDATE SET 
-        highscore = GREATEST(leaderboard.highscore, ${highscore}),
+        highscore = ${highscore},
         games_played = ${games_played},
         total_wins = ${total_wins},
         last_updated = NOW()
