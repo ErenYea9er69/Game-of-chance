@@ -1,7 +1,7 @@
 // game2.js - No Match Dealer Game
 /* ====================================
    GAME 2: NO MATCH DEALER
-
+    */
 
 window.Game2 = {
     noMatchGame: function() {
