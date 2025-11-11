@@ -1477,3 +1477,112 @@ input::placeholder {
         font-size: 18px;
     }
 }
+
+/* ====================================
+   BLACKJACK GAME SPECIFIC STYLES
+   Add these styles at the end of your styles.css file
+   ==================================== */
+
+.blackjack-table {
+    margin: 32px 0;
+}
+
+.blackjack-hand {
+    margin-bottom: 32px;
+}
+
+.blackjack-hand h4 {
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.blackjack-cards {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    perspective: 1000px;
+}
+
+.blackjack-card {
+    width: 70px;
+    height: 100px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-subtle);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 600;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-medium);
+    animation: cardDeal 0.4s ease backwards;
+}
+
+.blackjack-card::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.05) 100%);
+    opacity: 0.5;
+}
+
+@keyframes cardDeal {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) rotateX(-90deg);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+    }
+}
+
+.blackjack-card.card-back {
+    background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+    border-color: var(--border-medium);
+    font-size: 48px;
+    color: var(--text-muted);
+}
+
+/* Color hearts and diamonds red */
+.blackjack-card:has-text("♥"),
+.blackjack-card:has-text("♦") {
+    color: #ff6b6b;
+}
+
+/* Responsive blackjack cards */
+@media (max-width: 768px) {
+    .blackjack-card {
+        width: 60px;
+        height: 85px;
+        font-size: 28px;
+    }
+    
+    .blackjack-cards {
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .blackjack-card {
+        width: 50px;
+        height: 70px;
+        font-size: 24px;
+    }
+    
+    .blackjack-hand h4 {
+        font-size: 12px;
+    }
+}

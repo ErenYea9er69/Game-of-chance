@@ -21,6 +21,7 @@
     <script src="game5.js" defer></script>
     <script src="game6.js" defer></script>
     <script src="game7.js" defer></script>
+    <script src="game8.js" defer></script>
 
 </head>
 <body>
@@ -38,7 +39,7 @@
             <section class="glass-card welcome-screen">
                 <div class="welcome-content">
                     <h2>Welcome</h2>
-                    <p>Enter your name to begin your journey at the premium casino experience. You'll start with 100 credits to test your luck across seven exciting games.</p>
+                    <p>Enter your name to begin your journey at the premium casino experience. You'll start with 100 credits to test your luck across eight exciting games.</p>
                     <input type="text" id="nameInput" placeholder="Enter your name" autofocus>
                     <button onclick="submitName()" class="btn-primary" style="width: 100%; margin-top: 12px;">Start Playing</button>
                 </div>
@@ -71,41 +72,44 @@
                     🎲
                     <div class="random-dice-tooltip">
                         <strong>RANDOM GAME</strong>
-                        <span>Quit: -10 credits</span>
+                        <span>Quit: -50% credits</span>
                         <span>Win: 2x prize!</span>
                     </div>
                 </button>
             </div>
             <nav class="menu-options">
                 <button onclick="startGame('pickNumber')" class="menu-btn">
-                    <span>01</span> — Pick a Number
+                    <span>01</span> – Pick a Number
                 </button>
                 <button onclick="startGame('noMatch')" class="menu-btn">
-                    <span>02</span> — No Match Dealer
+                    <span>02</span> – No Match Dealer
                 </button>
                 <button onclick="startGame('findAce')" class="menu-btn">
-                    <span>03</span> — Find the Ace
+                    <span>03</span> – Find the Ace
                 </button>
                 <button onclick="startGame('luckyWheel')" class="menu-btn">
-                    <span>04</span> — Lucky Wheel
+                    <span>04</span> – Lucky Wheel
                 </button>
                 <button onclick="startGame('highLow')" class="menu-btn">
-                    <span>05</span> — High-Low Cards
+                    <span>05</span> – High-Low Cards
                 </button>
                 <button onclick="startGame('overUnder7')" class="menu-btn">
-                    <span>06</span> — Over/Under 7
+                    <span>06</span> – Over/Under 7
                 </button>
                 <button onclick="startGame('chuckALuck')" class="menu-btn">
-                    <span>07</span> — Chuck-a-Luck
+                    <span>07</span> – Chuck-a-Luck
+                </button>
+                <button onclick="startGame('blackjack')" class="menu-btn">
+                    <span>08</span> – Blackjack
                 </button>
                 <button onclick="changeName()" class="menu-btn">
-                    <span>08</span> — Change Name
+                    <span>09</span> – Change Name
                 </button>
                 <button onclick="resetAccount()" class="menu-btn">
-                    <span>09</span> — Reset Account
+                    <span>10</span> – Reset Account
                 </button>
                 <button onclick="quit()" class="menu-btn">
-                    <span>10</span> — Quit
+                    <span>11</span> – Quit
                 </button>
             </nav>
         </section>
